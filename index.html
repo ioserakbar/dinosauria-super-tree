@@ -5,6 +5,7 @@
     <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script type="module" src="main.js"></script>
+    <script type="module" src="test.js"></script>
     <style>
         html, body {
             margin: 0 !important;
@@ -44,14 +45,30 @@
                 background-color: white
 
             }
+        
+        .disabled{
+            display: none;
+        }
+
+        ul li{
+            padding: 0px;
+            margin: 0px;
+        }
     </style>
 </head>
 <body>
-    <div id="main">
+    <div id="main" class="disabled">
         <!-- <div class="clado" data-tippy-content="Dinosauria"></div> -->
         <canvas id="myChart"></canvas>
+    </div>
+    <div id="main">
+        <p>Intento de separacion</p>
+        <ul id="lista" style="list-style: none;">
+        </ul>
     </div>
 </body>
 <script>
     tippy('[data-tippy-content]');
+
+
 </script>
