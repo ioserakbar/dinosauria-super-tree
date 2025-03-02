@@ -1,3 +1,5 @@
+import { drawCardinalPoints, drawDivisionCircleHelper, divisoryLines } from "./debugShapes.js";
+
 export var canvas = document.getElementById("myChart");
 export var ctx = canvas.getContext("2d");
 
@@ -5,46 +7,22 @@ var totalDivisions = 10;
 var totalTreeRadio = 1200;
 var debugMode = true;
 
-export function draw(zoom = .5, currentLineWidth = 2, offsetX = 0, offsetY = 0){
-    console.log('drawing');
-    var centerX = canvas.width / 2;
-    var centerY = canvas.height / 2;
+export function mainDraw(zoom = .5, currentLineWidth = 2, offset={x:0,y:0}){
+    var center = {
+        x:(canvas.width / 2) + offset.x,
+        y:(canvas.height / 2) + + offset.y
+    }
 
-    var currentX = centerX + offsetX;
-    var currentY = centerY + offsetY;
+    drawDivisionCircleHelper(ctx, totalTreeRadio, totalDivisions, center, currentLineWidth, zoom)
 
+    drawCardinalPoints(canvas, ctx, center);
+
+    divisoryLines(canvas, ctx, totalTreeRadio, center, zoom);
 
     //GUIDE LINES
     if(debugMode){
-        ctx.beginPath();
-        
-        var linesOpacity = '100';
-
-        // //Main cardinal points
-        // //North
-        // ctx.moveTo(centerX , centerY);
-        // ctx.lineTo(centerX, 0);  
-
-        // //South
-        // ctx.moveTo(centerX , centerY);
-        // ctx.lineTo(centerX , canvas.height);
-
-        // //West
-        // ctx.moveTo(centerX, centerY);
-        // ctx.lineTo(0, centerY); 
-
-        // //East
-        // ctx.moveTo(centerX, centerY);
-        // ctx.lineTo(canvas.width , centerY);
-
-        // ctx.strokeStyle = '#ff0000' + linesOpacity;
-        // ctx.lineWidth = 3;
-        // ctx.stroke();
-
         // ctx.beginPath();
-        // //X = 0 - CANVAS.WIDTH
-        // //Y = 0 - CANVAS.HEIGHT
-
+        
 
         // //Divisions line
         // var step = 30;
@@ -83,27 +61,8 @@ export function draw(zoom = .5, currentLineWidth = 2, offsetX = 0, offsetY = 0){
         // ctx.lineWidth = 5;
         // ctx.stroke();
 
-        ctx.beginPath();
-        ctx.lineWidth = currentLineWidth;
-        ctx.stroke();
-
-        var separation = totalTreeRadio / totalDivisions;
-        for(var i = 0; i <= totalDivisions; i++){
-            ctx.beginPath();
-            ctx.arc(currentX, currentY, (separation * i) * zoom, 0, 2 * Math.PI);
-            ctx.strokeStyle = "green";
-            ctx.stroke()
-        }
-
-        ctx.beginPath();
-        ctx.arc(currentX, currentY, 10 * zoom, 0, 2 * Math.PI);
-        ctx.fillStyle = "red";
-        
-        ctx.strokeStyle = "red";
-        ctx.fill();
-        ctx.stroke()
-        
     }
+
 
     // //First Circle
     // ctx.arc(centerX, centerY, firstCladeSize * zoom, 0, 2 * Math.PI);
@@ -129,5 +88,4 @@ export function draw(zoom = .5, currentLineWidth = 2, offsetX = 0, offsetY = 0){
 
 
     // ctx.lineTo((centerX + exampleCoordX), (centerY + exampleCoordY));
-    ;
 }
