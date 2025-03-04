@@ -4,7 +4,7 @@ import { canvas, render } from "./tools/canvasTools.js";
 
 $(document).ready(function() {
 
-    prepareCanvas();
+    prepararCanvas();
     canvas.addEventListener( 'wheel', (e) => ajustarZoom(e))
     document.body.addEventListener( 'mouseup' ,(e) =>  onPointerUp(e))
     document.body.addEventListener('mousemove', (e) =>  onPointerMove(e))
@@ -12,10 +12,10 @@ $(document).ready(function() {
 });
 
 $( window ).on( "resize", function() {
-    prepareCanvas();
+    prepararCanvas();
 });
 
-function prepareCanvas(){
+function prepararCanvas(){
     resizeCanvas();
     render();
 }

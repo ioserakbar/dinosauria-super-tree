@@ -72,18 +72,45 @@ export function renderearLineasDivisorias(ctx, totalTreeRadio, center, zoom, lin
     }   
 }
 
-export function dibjuarLineaACoordenadaPolar(ctx, offset, angle, distance, zoom){
+function dibjuarLineaACoordenadaPolar(ctx, offset, angle, distance, zoom){
     ctx.beginPath();
     ctx.moveTo(offset.x, offset.y);
 
-    angle = -angle * (Math.PI / 180);
-
-    var x = offset.x + (distance * Math.cos(angle)) * zoom;
-    var y = offset.y + (distance * Math.sin(angle)) * zoom;
-    ctx.lineTo(x, y);
+    var coords = getCoordenadasCardinalesDePolares(distance, angle, offset, zoom);
+    ctx.lineTo(coords.x, coords.y);
 
     ctx.strokeStyle = "#0000ff";
     ctx.lineWidth = 1;
     ctx.stroke();
 
+}
+
+export function renderearTestDeArbol(ctx, offset, angle, distance, zoom){
+    dibujarPuntoACoordenadaPolar(ctx, offset, angle, distance, zoom);
+}
+
+function dibujarPuntoACoordenadaPolar(ctx, offset, angle, distance, zoom){
+    ctx.beginPath();
+    ctx.moveTo(offset.x, offset.y);
+
+    var coords = getCoordenadasCardinalesDePolares(distance, angle, offset, zoom)
+    ctx.moveTo(coords.x, coords.y)
+    ctx.arc(coords.x, coords.y, 10 * zoom, 0, 2 * Math.PI);
+    ctx.fillStyle = "red";
+    
+    ctx.strokeStyle = "red";
+    ctx.fill();
+    ctx.stroke()
+
+}
+
+
+function getCoordenadasCardinalesDePolares(distancia, angulo, offset, zoom){
+
+
+    angulo = -angulo * (Math.PI / 180);
+    var x = offset.x + (distancia * Math.cos(angulo)) * zoom;
+    var y = offset.y + (distancia * Math.sin(angulo)) * zoom;
+
+    return {x: x, y:y}
 }
