@@ -85,7 +85,7 @@ function dibjuarLineaACoordenadaPolar(ctx, offset, angle, distance, zoom){
 
 }
 
-export function renderearTestDeArbol(ctx, offset, angle, distance, zoom){
+export function renderearTestDeRamaDeArbol(ctx, offset, angle, distance, zoom){
     dibujarPuntoACoordenadaPolar(ctx, offset, angle, distance, zoom);
 }
 

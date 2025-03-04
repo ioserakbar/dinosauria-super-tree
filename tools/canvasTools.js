@@ -20,6 +20,6 @@ export function render(zoom = .5, currentLineWidth = 2, offset={x:0,y:0}){
 
     renderearPuntosCardinales(canvas, ctx, center);
 
-    renderearTestDeArbol(ctx, center, 45, 450, zoom);
+    renderearTestDeRamaDeArbol(ctx, center, 45, 450, zoom);
 
 }
