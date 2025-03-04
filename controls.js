@@ -1,4 +1,4 @@
-import {canvas, ctx, mainDraw} from "./tools/canvasTools.js";
+import {canvas, ctx, render} from "./tools/canvasTools.js";
 let isDragging = false
 let dragStart = { x: 0, y: 0 }
 
@@ -14,7 +14,7 @@ var offset = {
     y:0
 }
 
-export function adjustZoom(e) {
+export function ajustarZoom(e) {
 
     if(!isDragging){
         var delta = e.deltaY * SCROLL_SENSITIVITY;
@@ -26,7 +26,7 @@ export function adjustZoom(e) {
         zoom = Math.max( zoom, MIN_ZOOM )
         lineWidth = zoom * 4;
 
-        redraw()
+        reRenderear()
     }
 
 };
@@ -51,7 +51,7 @@ export function onPointerMove(e)
         offset.x = getEventLocation(e).x - dragStart.x
         offset.y = getEventLocation(e).y  - dragStart.y
 
-        redraw()
+        reRenderear()
     }
 }
 
@@ -67,7 +67,7 @@ function getEventLocation(e)
     }
 }
 
-function redraw(){
+function reRenderear(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    mainDraw(zoom, lineWidth, offset);
+    render(zoom, lineWidth, offset);
 }

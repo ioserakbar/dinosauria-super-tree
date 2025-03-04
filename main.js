@@ -1,11 +1,11 @@
-import { adjustZoom, onPointerDown, onPointerUp, onPointerMove } from '/controls.js'
-import { canvas, mainDraw } from "./tools/canvasTools.js";
+import { ajustarZoom, onPointerDown, onPointerUp, onPointerMove } from '/controls.js'
+import { canvas, render } from "./tools/canvasTools.js";
 
 
 $(document).ready(function() {
 
     prepareCanvas();
-    canvas.addEventListener( 'wheel', (e) => adjustZoom(e))
+    canvas.addEventListener( 'wheel', (e) => ajustarZoom(e))
     document.body.addEventListener( 'mouseup' ,(e) =>  onPointerUp(e))
     document.body.addEventListener('mousemove', (e) =>  onPointerMove(e))
     document.body.addEventListener( 'mousedown' , (e) =>  onPointerDown(e))
@@ -17,7 +17,7 @@ $( window ).on( "resize", function() {
 
 function prepareCanvas(){
     resizeCanvas();
-    mainDraw();
+    render();
 }
 
 function resizeCanvas(){

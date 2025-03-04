@@ -1,10 +1,10 @@
 
 
-export function drawCardinalPoints(canvas, ctx, center, color = '#ff0000', width = 3){
+export function renderearPuntosCardinales(canvas, ctx, center, color = '#ff0000', width = 3){
     
     ctx.beginPath();
-    //Main cardinal points
-    //North
+    //Puntos cardinales
+    //Norte
     ctx.moveTo(center.x , center.y);
     ctx.lineTo(center.x , 50);  
     ctx.font = "48px serif";
@@ -12,7 +12,7 @@ export function drawCardinalPoints(canvas, ctx, center, color = '#ff0000', width
     ctx.textBaseline = "top";
     ctx.fillText("N", center.x , 0);
 
-    //South
+    //Sur
     ctx.moveTo(center.x , center.y);
     ctx.lineTo(center.x , canvas.height - 50);
     ctx.font = "48px serif";
@@ -20,15 +20,15 @@ export function drawCardinalPoints(canvas, ctx, center, color = '#ff0000', width
     ctx.textBaseline = "bottom";
     ctx.fillText("S", center.x , canvas.height);
 
-    //West
+    //Oeste
     ctx.moveTo(center.x, center.y);
     ctx.lineTo(50, center.y); 
     ctx.font = "48px serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText("W", 0, center.y);
+    ctx.fillText("O", 0, center.y);
 
-    //East
+    //Este
     ctx.moveTo(center.x, center.y);
     ctx.lineTo(canvas.width - 30 , center.y);
     ctx.font = "48px serif";
@@ -43,7 +43,7 @@ export function drawCardinalPoints(canvas, ctx, center, color = '#ff0000', width
     ctx.beginPath();
 }
 
-export function drawDivisionCircleHelper(ctx, totalTreeRadio, totalDivisions, center, width = 3, zoom){
+export function rendereaDivisionesDeArcos(ctx, totalTreeRadio, totalDivisions, center, zoom, width = 3){
     ctx.beginPath();
     ctx.lineWidth = width;
     ctx.stroke();
@@ -65,14 +65,14 @@ export function drawDivisionCircleHelper(ctx, totalTreeRadio, totalDivisions, ce
     ctx.stroke()
 }
 
-export function divisoryLines(canvas, ctx, totalTreeRadio, center, zoom, lines = 64){
+export function renderearLineasDivisorias(ctx, totalTreeRadio, center, zoom, lines = 64){
 
     for(var i = 1; i <= lines; i++){
-        drawLineToPolarCoord(ctx, center, (360 / lines) * i  ,totalTreeRadio, zoom);
+        dibjuarLineaACoordenadaPolar(ctx, center, (360 / lines) * i  ,totalTreeRadio, zoom);
     }   
 }
 
-export function drawLineToPolarCoord(ctx, offset, angle, distance, zoom){
+export function dibjuarLineaACoordenadaPolar(ctx, offset, angle, distance, zoom){
     ctx.beginPath();
     ctx.moveTo(offset.x, offset.y);
 
