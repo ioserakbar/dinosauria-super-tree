@@ -1,4 +1,4 @@
-import { renderearPuntosCardinales, rendereaDivisionesDeArcos, renderearLineasDivisorias, renderearTestDeArbol } from "./debugShapes.js";
+import { renderearPuntosCardinales, rendereaDivisionesDeArcos, renderearLineasDivisorias, renderearTestDeRamaDeArbol } from "./debugShapes.js";
 
 export var canvas = document.getElementById("myChart");
 export var ctx = canvas.getContext("2d");
@@ -20,6 +20,8 @@ export function render(zoom = .5, currentLineWidth = 2, offset={x:0,y:0}){
 
     renderearPuntosCardinales(canvas, ctx, center);
 
-    renderearTestDeRamaDeArbol(ctx, center, 45, 450, zoom);
+    renderearTestDeRamaDeArbol(ctx, center, 90, 450, zoom);
+    renderearTestDeRamaDeArbol(ctx, center, 90.5, 425, zoom);
+    renderearTestDeRamaDeArbol(ctx, center, 91, 400, zoom);
 
 }

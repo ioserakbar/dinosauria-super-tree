@@ -30,14 +30,18 @@ export class Arbol{
         return parentName;
     }
 
+    getParentId(clado){
+        this.clados.find(x => x.id == clado.cladoPadre).cladoPadre;
+    }
 
     getFamiliaBySpeciesName(species){
         var Familia = new Array();
         var BreakException = {};
         var hasReachedParent = false;
 
-        var parentIdTmp = this.clados.find(x => x.id == species.genero).id;
-
+        var cladoPerteneciente = this.clados.find(x => x.id == species.genero);
+        var test = this.getParentId(cladoPerteneciente);
+        console.log(test)
         do {
             var cladoActual  = this.clados.find(x => x.id == parentIdTmp);
 

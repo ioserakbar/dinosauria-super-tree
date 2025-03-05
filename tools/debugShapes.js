@@ -107,7 +107,7 @@ function dibujarPuntoACoordenadaPolar(ctx, offset, angle, distance, zoom){
 
 function getCoordenadasCardinalesDePolares(distancia, angulo, offset, zoom){
 
-
+    //0° siendo el este y 180° el oeste
     angulo = -angulo * (Math.PI / 180);
     var x = offset.x + (distancia * Math.cos(angulo)) * zoom;
     var y = offset.y + (distancia * Math.sin(angulo)) * zoom;
