@@ -1,4 +1,4 @@
-import { renderearPuntosCardinales, rendereaDivisionesDeArcos, renderearLineasDivisorias, renderearTestDeRamaDeArbol } from "./debugShapes.js";
+import { renderearPuntosCardinales, renderCardinalPoints, renderearLineasDivisorias, renderearTestDeRamaDeArbol } from "./debugShapes.js";
 
 export var canvas = document.getElementById("myChart");
 export var ctx = canvas.getContext("2d");
@@ -14,7 +14,7 @@ export function render(zoom = .5, currentLineWidth = 2, offset={x:0,y:0}){
     }
 
     
-    rendereaDivisionesDeArcos(ctx, totalTreeRadio, totalDivisions, center, zoom);
+    renderCardinalPoints(ctx, totalTreeRadio, totalDivisions, center, zoom);
 
     renderearLineasDivisorias(ctx, totalTreeRadio, center, zoom);
 

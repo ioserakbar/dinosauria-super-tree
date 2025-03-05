@@ -1,6 +1,6 @@
 
 
-export function renderearPuntosCardinales(canvas, ctx, center, color = '#ff0000', width = 3){
+export function renderCardinalPoints(canvas, ctx, center, color = '#ff0000', width = 3){
     
     ctx.beginPath();
     //Puntos cardinales

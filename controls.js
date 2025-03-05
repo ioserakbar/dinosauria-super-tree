@@ -14,7 +14,7 @@ var offset = {
     y:0
 }
 
-export function ajustarZoom(e) {
+export function adjuztZoom(e) {
 
     if(!isDragging){
         var delta = e.deltaY * SCROLL_SENSITIVITY;

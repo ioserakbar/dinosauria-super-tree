@@ -1,11 +1,11 @@
-import { ajustarZoom, onPointerDown, onPointerUp, onPointerMove } from '/controls.js'
+import { adjuztZoom, onPointerDown, onPointerUp, onPointerMove } from '/controls.js'
 import { canvas, render } from "./tools/canvasTools.js";
 
 
 $(document).ready(function() {
 
     prepararCanvas();
-    canvas.addEventListener( 'wheel', (e) => ajustarZoom(e))
+    canvas.addEventListener( 'wheel', (e) => adjuztZoom(e))
     document.body.addEventListener( 'mouseup' ,(e) =>  onPointerUp(e))
     document.body.addEventListener('mousemove', (e) =>  onPointerMove(e))
     document.body.addEventListener( 'mousedown' , (e) =>  onPointerDown(e))

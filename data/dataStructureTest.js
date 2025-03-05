@@ -1,58 +1,48 @@
-export class Especie {
-    constructor(id, nombreComun, nombreCientifico, genero, descripcion = ""){
+export class Species {
+    constructor(id, commonName, binomialNomenglature, genus, description = "", coords){
         this.id = id;
-        this.nombreComun = nombreComun;
-        this.nombreCientifico = nombreCientifico;
-        this.genero = genero;
-        this.descripcion = descripcion;
+        this.commonName = commonName;
+        this.binomialNomenglature = binomialNomenglature;
+        this.genus = genus;
+        this.description = description;
+        this.coords = coords;
     }
 }
 
-export class Clado{
-    constructor(id, nombre, cladoPadre, nivelTaxonomico, descripcion = ""){
+export class Clade{
+    constructor(id, name, parentClade, taxonomyLevel, description = "", isFirst = false){
         this.id = id;
-        this.nombre = nombre;
-        this.cladoPadre = cladoPadre;
-        this.nivelTaxonomico = nivelTaxonomico;
-        this.descripcion = descripcion;
+        this.name = name;
+        this.parentClade = parentClade;
+        this.taxonomyLevel = taxonomyLevel;
+        this.description = description;
+        this.isFirst = isFirst;
     }
 }
 
-export class Arbol{
-    constructor(clados){
-        this.clados = clados;
+export class Tree{
+    constructor(clades){
+        this.clades = clades;
     }
 
-    getParentNameByName(clado){
-        var parentId = this.clados.find(n => n.nombre == clado).cladoPadre;
-        var parentName = this.clados.find(x => x.id == parentId).nombre;
+    getParentNameByName(clade){
+        var parentId = this.clades.find(n => n.nombre == clade).parentClade;
+        var parentName = this.clades.find(x => x.id == parentId).name;
 
         return parentName;
     }
 
-    getParentId(clado){
-        this.clados.find(x => x.id == clado.cladoPadre).cladoPadre;
+    getParent(clade){
+        var parentClade = this.clades.find(x => x.id == clade.parentClade);
+        if(parentClade.isFirst){
+            return parentClade;
+        }
+        return parentClade = this.getParent(parentClade)
     }
 
-    getFamiliaBySpeciesName(species){
-        var Familia = new Array();
-        var BreakException = {};
-        var hasReachedParent = false;
-
-        var cladoPerteneciente = this.clados.find(x => x.id == species.genero);
-        var test = this.getParentId(cladoPerteneciente);
-        console.log(test)
-        do {
-            var cladoActual  = this.clados.find(x => x.id == parentIdTmp);
-
-            if(cladoActual){
-                Familia.push(cladoActual);
-                parentIdTmp = cladoActual.cladoPadre;
-            } else{
-                hasReachedParent = true
-            }
-        } while (!hasReachedParent);
-
-        return Familia;
+    getClade(species){
+        return this.clades.find( x => x.id == species.genus);
     }
+
+
 }
