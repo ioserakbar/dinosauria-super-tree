@@ -1,4 +1,6 @@
-import {canvas, ctx, render} from "./tools/canvasTools.js";
+import { draw } from "./test.js";
+import { CommonVariables } from "./data/commonVariables.js";
+
 let isDragging = false
 let dragStart = { x: 0, y: 0 }
 
@@ -6,7 +8,6 @@ let MAX_ZOOM = 10;
 let MIN_ZOOM = 0.1;
 let SCROLL_SENSITIVITY = 0.0005;
 
-var zoom = .5;
 var lineWidth = 2;
 
 var offset = {
@@ -14,10 +15,13 @@ var offset = {
     y:0
 }
 
+var common = new CommonVariables();
 export function adjuztZoom(e) {
 
     if(!isDragging){
+        var zoom = common.zoom;
         var delta = e.deltaY * SCROLL_SENSITIVITY;
+
         if (delta) { 
             zoom -= delta;
         }
@@ -25,8 +29,9 @@ export function adjuztZoom(e) {
         zoom = Math.min( zoom, MAX_ZOOM )
         zoom = Math.max( zoom, MIN_ZOOM )
         lineWidth = zoom * 4;
+        common.zoom = zoom;
 
-        reRenderear()
+        reDraw()
     }
 
 };
@@ -51,7 +56,7 @@ export function onPointerMove(e)
         offset.x = getEventLocation(e).x - dragStart.x
         offset.y = getEventLocation(e).y  - dragStart.y
 
-        reRenderear()
+        reDraw()
     }
 }
 
@@ -67,7 +72,7 @@ function getEventLocation(e)
     }
 }
 
-function reRenderear(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    render(zoom, lineWidth, offset);
+function reDraw(){
+    common.context.clearRect(0, 0, common.canvas.width, common.canvas.height);
+    draw(lineWidth, offset);
 }

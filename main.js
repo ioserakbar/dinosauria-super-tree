@@ -1,14 +1,15 @@
-import { adjuztZoom, onPointerDown, onPointerUp, onPointerMove } from '/controls.js'
-import { canvas, render } from "./tools/canvasTools.js";
+import { adjuztZoom, onPointerDown, onPointerUp, onPointerMove } from './controls.js'
+import { CommonVariables } from "../data/commonVariables.js";
+import { draw } from "./test.js";
 
+var canvas = document.getElementById("myChart");
 
 $(document).ready(function() {
-
+    var common = new CommonVariables()
+    common.canvas = canvas;
+    common.context;
     prepararCanvas();
-    canvas.addEventListener( 'wheel', (e) => adjuztZoom(e))
-    document.body.addEventListener( 'mouseup' ,(e) =>  onPointerUp(e))
-    document.body.addEventListener('mousemove', (e) =>  onPointerMove(e))
-    document.body.addEventListener( 'mousedown' , (e) =>  onPointerDown(e))
+    addListeners();
 });
 
 $( window ).on( "resize", function() {
@@ -17,12 +18,22 @@ $( window ).on( "resize", function() {
 
 function prepararCanvas(){
     resizeCanvas();
-    render();
+    draw();
 }
 
 function resizeCanvas(){
+    var common = new CommonVariables()
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    common.center.x = canvas.width / 2;
+    common.center.y = canvas.height / 2;
+}
+
+function addListeners(){
+    document.body.addEventListener( 'wheel', (e) => adjuztZoom(e))
+    document.body.addEventListener( 'mouseup', (e) =>  onPointerUp(e))
+    document.body.addEventListener( 'mousemove', (e) =>  onPointerMove(e))
+    document.body.addEventListener( 'mousedown' , (e) =>  onPointerDown(e))
 }
 
 
@@ -34,5 +45,4 @@ function resizeCanvas(){
  *  - USAR COORDENADAS POLARES
  *  - Hacer la logica de la ramificación (dios? soy yo de nuevo...)
  *  - Poner los elementos informativos de los clados en sus respectivs lugares. 
- * 
 */
