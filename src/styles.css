@@ -1,5 +1,7 @@
 html, body {
     margin: 0 !important;
     padding: 0 !important;
-    background-color: rgb(82, 121, 122);
+    background-color: #0E1116;
+    font-family: "Roboto", sans-serif;
+    color: white;
 }

@@ -1,0 +1,27 @@
+
+.nav-tabs{
+    background-color: #374a67;
+    border: 0;
+}
+
+.nav-item button{
+    color: white;
+    margin: 10px;
+    border-radius: 3px;
+}
+
+.nav-item button:hover{
+    outline: none;
+    border: none;
+    background-color: #616283;
+}
+
+.nav-tabs .nav-link{
+    border: none ;
+}
+
+.nav-link.active{
+    border: 0;
+    background: none;
+}
+

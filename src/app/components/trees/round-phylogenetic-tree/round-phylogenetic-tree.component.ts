@@ -1,8 +1,6 @@
 import { Component, HostListener, ViewChild, Inject, PLATFORM_ID, ElementRef, Host } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
 import { dummyCladeData, dummySpeciesData, Tree } from '../../../dataDummy'
-import { CanvasArcOrientation } from '../../../../enums/canvasArcOrientation'
-import { totalmem } from 'os'
 
 @Component({
     selector: 'pt-round-phylogenetic-tree',
@@ -41,7 +39,6 @@ export class RoundPhylogeneticTreeComponent {
     MAX_ZOOM = 10;
     MIN_ZOOM = 0.1;
     dragStart = { x: 0, y: 0 }
-
 
     constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
     ngAfterViewInit() {
@@ -131,13 +128,13 @@ export class RoundPhylogeneticTreeComponent {
             family?.forEach((clade, i) =>{
                 var distance = clade.totalSons == 0 ? this.treeRadius : clade.coords.distance
                 const angle = clade.coords.angle
-                const lineStart = this.getCardinalCoordsFromPolar(0, 0)
                 const coords = this.getCardinalCoordsFromPolar(distance, angle)
                 const nextStep = this.getCardinalCoordsFromPolar(distance + 100, angle)
                 
                 //First we move to the next division if there is a next step
                 context!.fillStyle = "red";
-                context!.strokeStyle = "black";
+                context!.strokeStyle = "gray";
+                context!.lineCap = "round";
                 context!.lineWidth = this.lineWidth;
                 if(family[i + 1]){
                     context?.beginPath()
@@ -159,32 +156,71 @@ export class RoundPhylogeneticTreeComponent {
                     context?.stroke() 
                 }
 
-                //If its the last one we finish the line
+                //If its the last one we finish the line and print the species name
                 if(clade.totalSons == 0){
                     const parentCoords = this.getCardinalCoordsFromPolar(family[i-1].coords.distance, family[i-1].coords.angle);
+                    let padding = 10 * this.zoom;
+
                     context?.beginPath()
                     context?.moveTo(parentCoords.x, parentCoords.y)
                     context?.lineTo(coords.x, coords.y)
                     context?.stroke()
 
+                    context?.beginPath();
+                    context?.moveTo(coords.x, coords.y)
+                    context?.arc(coords.x, coords.y, 6 * this.zoom, 0, 2 * Math.PI)
+                    context?.fill()
+
+                    context?.save()
+                    context?.translate(coords.x, coords.y);
+
+                    let textAngle =  angle ;
+                    if(textAngle < 90){
+                        // console.log(species.commonName, "< 90", textAngle)
+                        context!.textAlign = "left"
+
+                    }
+                    else if(textAngle >= 90 && textAngle < 180) {
+                        // console.log(species.commonName, "textAngle >= 90 && textAngle < 180", textAngle)
+                        context!.textAlign = "left"
+                        textAngle =  textAngle - 180;
+                        
+                    } 
+                    else if(textAngle >= 180 && textAngle < 270){
+                        // console.log(species.commonName, "textAngle >= 180 && textAngle < 270", textAngle)
+                        context!.textAlign = "right"
+                        textAngle =  textAngle - 180;
+                        padding = padding * -1
+
+                    }else if(textAngle >= 270){
+                        // console.log(species.commonName, "textAngle >= 270", textAngle)
+                        context!.textAlign = "right"
+                        padding = padding * -1
+
+                    }
+
+                    context?.rotate( textAngle * ( Math.PI / 180) );
+                    context!.font = 18 * this.zoom + "px Arial";
+                    context?.fillText(species.binomialNomenglature, padding, 5 * this.zoom);
+                    context?.restore();
                 }
             })
         });
 
-        //red dots with clade names
-        this.dummyClade.forEach(clade => {
-            var distance = clade.totalSons == 0 ? this.treeRadius : clade.coords.distance
-            const angle = clade.coords.angle
-            const coords = this.getCardinalCoordsFromPolar(distance, angle)
+        ////Red dots with clade names
+        // this.dummyClade.forEach(clade => {
+        //     var distance = clade.totalSons == 0 ? this.treeRadius : clade.coords.distance
+        //     const angle = clade.coords.angle
+        //     const coords = this.getCardinalCoordsFromPolar(distance, angle)
 
-            context?.beginPath();
-            context?.moveTo(coords.x, coords.y)
-            context?.arc(coords.x, coords.y, 6 * this.zoom, 0, 2 * Math.PI)
-            context?.fill()
-            context!.font = "18px Arial";
-            context!.textAlign = 'center';
-            context?.fillText(clade.name, coords.x, coords.y + 30)
-        })
+        //     context?.beginPath();
+        //     context?.moveTo(coords.x, coords.y)
+        //     context?.arc(coords.x, coords.y, 6 * this.zoom, 0, 2 * Math.PI)
+        //     context?.fill()
+        //     context!.font = "18px Arial";
+        //     context!.textAlign = 'center';
+        //     context?.fillText(clade.name, coords.x, coords.y + 30)
+        // })
 
     }
 
