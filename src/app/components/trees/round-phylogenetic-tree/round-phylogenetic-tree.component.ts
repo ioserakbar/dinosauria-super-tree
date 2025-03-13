@@ -16,7 +16,7 @@ export class RoundPhylogeneticTreeComponent {
     offset = { x: 0, y: 0 };
     currentCenter = { x: 0, y: 0 }
     context?: CanvasRenderingContext2D | null;
-    zoom = 1.2;
+    zoom = 1;
     lineWidth = this.zoom * 4;
 
     //tree variables
@@ -46,7 +46,6 @@ export class RoundPhylogeneticTreeComponent {
             this.context = this.canvas.nativeElement.getContext("2d")
             this.tree = new Tree(this.dummyClade)
             this.resizeCanvas()
-            this.centerCanvas()
             this.draw()
         }
     }
@@ -246,13 +245,11 @@ export class RoundPhylogeneticTreeComponent {
     resizeCanvas() {
         this.canvas.nativeElement.width = window.innerWidth;
         this.canvas.nativeElement.height = window.innerHeight;
+        this.center.x = this.currentCenter.x = window.innerWidth / 2
+        this.center.y = this.currentCenter.y = window.innerHeight / 2
         this.draw();
     }
 
-    centerCanvas() {
-        this.center.x = this.currentCenter.x = window.innerWidth / 2
-        this.center.y = this.currentCenter.y = window.innerHeight / 2
-    }
     //#endregion
 
 

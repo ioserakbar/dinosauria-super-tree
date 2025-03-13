@@ -2,6 +2,15 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.1.
 
+## Things to add
+
+- Newick format
+- Profile
+- Info for species & clades
+- Editor role fpr said info
+- Different type of cladogram
+
+
 ## Development server
 
 To start a local development server, run:

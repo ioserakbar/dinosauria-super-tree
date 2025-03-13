@@ -1,18 +1,12 @@
 <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-tabs fixed-top">
 	<li [ngbNavItem]="1" class="nav-item">
-		<button ngbNavLink>Profile</button>
-		<ng-template ngbNavContent>
-			
-		</ng-template>
-	</li>
-	<li [ngbNavItem]="2" class="nav-item">
 		<button ngbNavLink>Tree</button>
 		<ng-template ngbNavContent>
 			<pt-round-phylogenetic-tree />
 		</ng-template>
 	</li>
-	<li [ngbNavItem]="3" class="nav-item">
-		<button ngbNavLink>Add item</button>
+	<li [ngbNavItem]="2" class="nav-item">
+		<button ngbNavLink>Add</button>
 		<ng-template ngbNavContent>
 			
 		</ng-template>
