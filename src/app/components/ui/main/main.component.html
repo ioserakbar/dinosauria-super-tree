@@ -6,9 +6,15 @@
 		</ng-template>
 	</li>
 	<li [ngbNavItem]="2" class="nav-item">
-		<button ngbNavLink>Add</button>
+		<button ngbNavLink>Add species</button>
 		<ng-template ngbNavContent>
-			
+			<pt-add-species />
+		</ng-template>
+	</li>
+	<li [ngbNavItem]="3" class="nav-item">
+		<button ngbNavLink>Add clade</button>
+		<ng-template ngbNavContent>
+			<pt-add-clade />
 		</ng-template>
 	</li>
 </ul>

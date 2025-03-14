@@ -1,7 +1,11 @@
 import { Component, HostListener, ViewChild, Inject, PLATFORM_ID, ElementRef, Host } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
-import { dummyCladeData, dummySpeciesData, Tree } from '../../../dataDummy'
-
+import { sample_Species, sapmle_Clades } from '../../../../data'
+import { Tree } from '../../../shared/models/Tree'
+import { CladeService } from '../../../services/clade/clade.service'
+import { Clade } from '../../../shared/models/Clade'
+import { SpeciesService } from '../../../services/species/species.service'
+import { Species } from '../../../shared/models/Species'
 @Component({
     selector: 'pt-round-phylogenetic-tree',
     imports: [],
@@ -25,13 +29,8 @@ export class RoundPhylogeneticTreeComponent {
     tree?: Tree;
 
     //data variables
-    dummyClade = dummyCladeData();
-    dummySpecies = dummySpeciesData(
-        this.dummyClade.find(x => x.name == "Triceratops")!.id,
-        this.dummyClade.find(x => x.name == "Tyrannosaurus")!.id,
-        this.dummyClade.find(x => x.name == "Diplodocus")!.id,
-        this.dummyClade.find(x => x.name == "Megalosaurus")!.id
-    )
+    dummyClade: Clade[] = []
+    dummySpecies: Species[] = []
 
     //Controls variables
     isDragging = false;
@@ -40,12 +39,19 @@ export class RoundPhylogeneticTreeComponent {
     MIN_ZOOM = 0.1;
     dragStart = { x: 0, y: 0 }
 
-    constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
+    constructor(
+        @Inject(PLATFORM_ID) private platformId: Object, 
+        private cladeService: CladeService,
+        private speciesService: SpeciesService
+    ) { }
     ngAfterViewInit() {
         if (isPlatformBrowser(this.platformId)) {
             this.context = this.canvas.nativeElement.getContext("2d")
-            this.tree = new Tree(this.dummyClade)
             this.resizeCanvas()
+            this.dummyClade = this.cladeService.getAll()
+            this.dummySpecies = this.speciesService.getAll()
+            this.tree = new Tree(this.dummyClade)
+
             this.draw()
         }
     }
@@ -125,8 +131,8 @@ export class RoundPhylogeneticTreeComponent {
             const family = this.tree?.getSpeciesFamily(species)
 
             family?.forEach((clade, i) =>{
-                var distance = clade.totalSons == 0 ? this.treeRadius : clade.coords.distance
-                const angle = clade.coords.angle
+                var distance = clade.drawHelper.totalSons == 0 ? this.treeRadius : clade.drawHelper.coords.distance
+                const angle = clade.drawHelper.coords.angle
                 const coords = this.getCardinalCoordsFromPolar(distance, angle)
                 const nextStep = this.getCardinalCoordsFromPolar(distance + 100, angle)
                 
@@ -144,20 +150,20 @@ export class RoundPhylogeneticTreeComponent {
                 //Then we draw an arch if theres a division
                 if(family[i + 2]){
                     const son = family[i+1];
-                    const sonsDistance = son.coords.distance
-                    const sonsAngle = son.coords.angle
+                    const sonsDistance = son.drawHelper.coords.distance
+                    const sonsAngle = son.drawHelper.coords.angle
                     const startAngle = - angle * ( Math.PI / 180)
                     const endAngle =  - sonsAngle * ( Math.PI / 180)
 
                     context?.beginPath()
                     context?.moveTo(nextStep.x, nextStep.y)
-                    context?.arc(center.x, center.y, sonsDistance * this.zoom, startAngle, endAngle, son.arcOrientation)
+                    context?.arc(center.x, center.y, sonsDistance * this.zoom, startAngle, endAngle, son.drawHelper.arcOrientation)
                     context?.stroke() 
                 }
 
                 //If its the last one we finish the line and print the species name
-                if(clade.totalSons == 0){
-                    const parentCoords = this.getCardinalCoordsFromPolar(family[i-1].coords.distance, family[i-1].coords.angle);
+                if(clade.drawHelper.totalSons == 0){
+                    const parentCoords = this.getCardinalCoordsFromPolar(family[i-1].drawHelper.coords.distance, family[i-1].drawHelper.coords.angle);
                     let padding = 10 * this.zoom;
 
                     context?.beginPath()
@@ -182,13 +188,13 @@ export class RoundPhylogeneticTreeComponent {
                     else if(textAngle >= 90 && textAngle < 180) {
                         // console.log(species.commonName, "textAngle >= 90 && textAngle < 180", textAngle)
                         context!.textAlign = "left"
-                        textAngle =  textAngle - 180;
+                        textAngle = textAngle - 180;
                         
                     } 
                     else if(textAngle >= 180 && textAngle < 270){
                         // console.log(species.commonName, "textAngle >= 180 && textAngle < 270", textAngle)
                         context!.textAlign = "right"
-                        textAngle =  textAngle - 180;
+                        textAngle = textAngle - 180;
                         padding = padding * -1
 
                     }else if(textAngle >= 270){
@@ -200,7 +206,7 @@ export class RoundPhylogeneticTreeComponent {
 
                     context?.rotate( textAngle * ( Math.PI / 180) );
                     context!.font = 18 * this.zoom + "px Arial";
-                    context?.fillText(species.binomialNomenglature, padding, 5 * this.zoom);
+                    context?.fillText(species.binomialNomenclature, padding, 5 * this.zoom);
                     context?.restore();
                 }
             })
@@ -249,7 +255,6 @@ export class RoundPhylogeneticTreeComponent {
         this.center.y = this.currentCenter.y = window.innerHeight / 2
         this.draw();
     }
-
     //#endregion
 
 
