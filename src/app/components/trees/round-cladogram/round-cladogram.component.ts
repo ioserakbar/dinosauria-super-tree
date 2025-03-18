@@ -1,18 +1,19 @@
 import { Component, HostListener, ViewChild, Inject, PLATFORM_ID, ElementRef, Host } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
-import { sample_Species, sapmle_Clades } from '../../../../data'
 import { Tree } from '../../../shared/models/Tree'
 import { CladeService } from '../../../services/clade/clade.service'
 import { Clade } from '../../../shared/models/Clade'
 import { SpeciesService } from '../../../services/species/species.service'
 import { Species } from '../../../shared/models/Species'
+import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals'
+import { forkJoin } from 'rxjs'
 @Component({
-    selector: 'pt-round-phylogenetic-tree',
+    selector: 'pt-round-cladogram',
     imports: [],
-    templateUrl: './round-phylogenetic-tree.component.html',
-    styleUrl: './round-phylogenetic-tree.component.css'
+    templateUrl: './round-cladogram.component.html',
+    styleUrl: './round-cladogram.component.css'
 })
-export class RoundPhylogeneticTreeComponent {
+export class RoundCladogram {
     @ViewChild('canvas') canvas!: ElementRef<HTMLCanvasElement>
 
     //canvas variables
@@ -43,19 +44,26 @@ export class RoundPhylogeneticTreeComponent {
         @Inject(PLATFORM_ID) private platformId: Object, 
         private cladeService: CladeService,
         private speciesService: SpeciesService
-    ) { }
+    ) { 
+
+        const $species = this.speciesService.getAll()
+        const $clades = this.cladeService.getAll()
+
+        forkJoin([$species, $clades]).subscribe(results => {
+            this.dummySpecies = results[0]
+            this.dummyClade = results[1]
+            this.tree = new Tree(this.dummyClade)
+            this.draw()
+        })
+        
+    }
+
     ngAfterViewInit() {
         if (isPlatformBrowser(this.platformId)) {
             this.context = this.canvas.nativeElement.getContext("2d")
             this.resizeCanvas()
-            this.dummyClade = this.cladeService.getAll()
-            this.dummySpecies = this.speciesService.getAll()
-            this.tree = new Tree(this.dummyClade)
-
-            this.draw()
         }
     }
-
 
     // #region controls and listeners
 
@@ -116,6 +124,10 @@ export class RoundPhylogeneticTreeComponent {
     //#region drawing functions
     draw() {
         const context = this.context
+        
+        if(context === undefined)
+            return
+        
         context?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
 
         const center = {
@@ -211,22 +223,6 @@ export class RoundPhylogeneticTreeComponent {
                 }
             })
         });
-
-        ////Red dots with clade names
-        // this.dummyClade.forEach(clade => {
-        //     var distance = clade.totalSons == 0 ? this.treeRadius : clade.coords.distance
-        //     const angle = clade.coords.angle
-        //     const coords = this.getCardinalCoordsFromPolar(distance, angle)
-
-        //     context?.beginPath();
-        //     context?.moveTo(coords.x, coords.y)
-        //     context?.arc(coords.x, coords.y, 6 * this.zoom, 0, 2 * Math.PI)
-        //     context?.fill()
-        //     context!.font = "18px Arial";
-        //     context!.textAlign = 'center';
-        //     context?.fillText(clade.name, coords.x, coords.y + 30)
-        // })
-
     }
 
     getCardinalCoordsFromPolar(distance: number, angle: number) {
@@ -251,8 +247,12 @@ export class RoundPhylogeneticTreeComponent {
     resizeCanvas() {
         this.canvas.nativeElement.width = window.innerWidth;
         this.canvas.nativeElement.height = window.innerHeight;
-        this.center.x = this.currentCenter.x = window.innerWidth / 2
-        this.center.y = this.currentCenter.y = window.innerHeight / 2
+
+        this.center.x = window.innerWidth / 2
+        this.center.y = window.innerHeight / 2
+
+        this.currentCenter.x = this.center.x + this.offset.x
+        this.currentCenter.y = this.center.y + this.offset.y
         this.draw();
     }
     //#endregion

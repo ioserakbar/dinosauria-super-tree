@@ -90,7 +90,7 @@ export class Tree{
         do{
             var currentClade = this.clades.find(x=>x.id == currentCladeId);
             if(currentCladeId == currentClade?.parentClade) {
-                console.error('Clade has self reference parent', currentClade)
+                console.log('Clade has self reference parent')
                 searchFinished = true;
             }
             if(currentClade?.isFirst){

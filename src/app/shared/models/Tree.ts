@@ -34,6 +34,9 @@ export class Tree{
         var family = new Array();
 
         var currentCladeId = this.clades.find(x => x.id == species.genus)?.id;
+        if(currentCladeId === undefined){
+            console.error(species.binomialNomenclature + " genus (id: " + species.genus + ") not found")
+        }
 
         var searchFinished = false;
         do{
