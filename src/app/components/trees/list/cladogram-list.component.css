@@ -1,0 +1,38 @@
+.cladogram-list{
+    margin: 80px;
+}
+
+.accordion{
+    --bs-accordion-bg: transparent;
+    color: white
+}
+.accordion-button:not(.collapsed) {
+    color: inherit;
+    background: none;
+    box-shadow: none;
+}
+
+.accordion-header button,
+.accordion-body{
+    color: white;
+    line-height: 1;
+    padding: 0;
+    font-size: 30px;
+}
+.accordion-header button svg{
+    margin-right: 10px;
+}
+
+.accordion-button:focus{
+    box-shadow: none
+}
+
+.accordion-item{
+    border: none    
+}
+
+.accordion-body{
+    padding: 0;
+    margin-left: 50px;
+}
+

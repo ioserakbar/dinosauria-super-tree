@@ -6,17 +6,24 @@
 		</ng-template>
 	</li>
 	<li [ngbNavItem]="2" class="nav-item">
+		<button ngbNavLink>List</button>
+		<ng-template ngbNavContent>
+			<pt-cladogram-list />
+		</ng-template>
+	</li>
+	<li [ngbNavItem]="3" class="nav-item">
 		<button ngbNavLink>Add species</button>
 		<ng-template ngbNavContent>
 			<pt-add-species />
 		</ng-template>
 	</li>
-	<li [ngbNavItem]="3" class="nav-item">
+	<li [ngbNavItem]="4" class="nav-item">
 		<button ngbNavLink>Add clade</button>
 		<ng-template ngbNavContent>
 			<pt-add-clade />
 		</ng-template>
 	</li>
+	
 </ul>
 
-<div [ngbNavOutlet]="nav"></div>
+<div [ngbNavOutlet]="nav" class="nav-content"></div>
