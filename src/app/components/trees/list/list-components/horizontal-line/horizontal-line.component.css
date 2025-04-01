@@ -1,0 +1,21 @@
+.horizontal-line-wrapper{
+    height: 100%;
+    display: flex;
+}
+
+.horizontal-line-wrapper .horizontal-line{
+    height: 2px;
+    margin: auto;
+    width: 100%;
+    background-color: white;
+}
+
+.horizontal-line-wrapper .horizontal-line .bottom-connection{
+    height: 20px;
+    width: 2px;
+    background-color: white;
+}
+
+.whitespase{
+    background-color: red;
+}

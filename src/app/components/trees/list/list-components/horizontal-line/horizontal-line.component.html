@@ -1,0 +1,8 @@
+<div class="horizontal-line-wrapper" [style]="{'width': (tiles * tileWidth) + 'px'}">
+    <div *ngIf="whitespase; else horizontalLine" class="whitespase"></div>
+    <ng-template #horizontalLine>
+        <div class="horizontal-line" >
+            <div *ngIf="bottomConnection;" class="bottom-connection"></div>
+        </div>
+    </ng-template>
+</div>

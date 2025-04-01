@@ -1,0 +1,13 @@
+.vertical-line-end-wrapper{
+    height: 100%;
+    display: flex;
+}
+
+.vertical-line-end{
+    background-color: white;
+    height: 20px;
+    padding: 1px;
+    margin: 0;
+    margin-top: 0;
+    margin-bottom: auto;
+}

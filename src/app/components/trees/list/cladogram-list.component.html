@@ -1,5 +1,67 @@
 <div class="cladogram-list">
-    <div ngbAccordion>
+    <div class="clade">
+        <h2>Dinosauria</h2>
+        <h2>
+            <pt-render-line [type]="'vertical-line'"/>
+            &nbsp;
+        </h2>
+        <h2>
+            <pt-render-line [type]="'vertical-line-middle'"/>
+            <div class="tiles-4"><label>Ornistichia</label></div>
+            <pt-render-line [type]="'horizontal-line'" />
+            <div class="last"><label>Triceratops Horridus</label></div>
+        </h2>
+        <h2>
+            <pt-render-line [type]="'vertical-line'"/>
+            &nbsp;
+        </h2>
+        <h2>
+            <pt-render-line [type]="'vertical-line-end'"/>
+            <div class="tiles-4"><label>Saurischia</label></div>
+            <pt-render-line [type]="'vertical-line-bottom'"/>
+            <div class="tiles-4"><label>Theropoda</label></div>
+            <pt-render-line [type]="'vertical-line-bottom'"/>
+            <div class="tiles-4"><label>Coleosauria</label></div>
+            <pt-render-line [type]="'horizontal-line'"/>
+            <div class="last"><label>Tyrannosaurus Rex</label></div>
+        </h2>
+        <h2>
+            <pt-render-line [type]="'no-line'" [tiles]="5"/>
+            <pt-render-line [type]="'vertical-line'"/>
+            <pt-render-line [type]="'no-line'" [tiles]="4"/>
+            <pt-render-line [type]="'vertical-line'"/>
+            &nbsp;
+        </h2>
+        <h2>
+            <pt-render-line [type]="'no-line'" [tiles]="5"/>
+            <pt-render-line [type]="'vertical-line'"/>
+            <pt-render-line [type]="'no-line'" [tiles]="4"/>
+            <pt-render-line [type]="'vertical-line-end'"/>
+            <div class="tiles-6"><label>Megalosauroidea</label></div>
+            <pt-render-line [type]="'horizontal-line'"/>
+            <div class="last"><label>Megalosaurus bucklandii</label></div>
+        </h2>
+        <h2>
+            <pt-render-line [type]="'no-line'" [tiles]="5"/>
+            <pt-render-line [type]="'vertical-line'"/>
+            &nbsp;
+        </h2>
+        <h2>
+            <pt-render-line [type]="'no-line'" [tiles]="5"/>
+            <pt-render-line [type]="'vertical-line-end'"/>
+            <div class=" tiles-6"><label>Sauropodomorpha</label></div>
+            <pt-render-line [type]="'horizontal-line'"/>
+            <div class="last"><label>Diplodocus Longus</label></div>
+        </h2>
+    </div>
+</div>
+
+
+
+
+
+<!-- <div class="cladogram-list">
+    <div ngbAccordion aria-expanded="true">
         <div ngbAccordionItem [collapsed]="false">
             <h2 ngbAccordionHeader>
                 <button ngbAccordionButton>Dinosauria</button>
@@ -7,14 +69,14 @@
             <div ngbAccordionCollapse>
                 <div ngbAccordionBody>
                     <div ngbAccordion>
-                        <div ngbAccordionItem [collapsed]="true">
+                        <div ngbAccordionItem [collapsed]="false">
                             <h2 ngbAccordionHeader>
                                 <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Ornithischia</button>
                             </h2>
                             <div ngbAccordionCollapse>
                                 <div ngbAccordionBody>
-                                    <div ngbAccordion>
-                                        <div ngbAccordionItem [collapsed]="true">
+                                    <div ngbAccordion >
+                                        <div ngbAccordionItem [collapsed]="false">
                                             <h2 ngbAccordionHeader>
                                                 <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Triceratops</button>
                                             </h2>
@@ -29,8 +91,77 @@
                             </div>
                         </div>
                     </div>
+                    <div ngbAccordion>
+                        <div ngbAccordionItem [collapsed]="false">
+                            <h2 ngbAccordionHeader>
+                                <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Saurischia</button>
+                            </h2>
+                            <div ngbAccordionCollapse>
+                                <div ngbAccordionBody>
+                                    <div ngbAccordion >
+                                        <div ngbAccordionItem [collapsed]="false">
+                                            <h2 ngbAccordionHeader>
+                                                <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Theropoda</button>
+                                            </h2>
+                                            <div ngbAccordionCollapse>
+                                                <div ngbAccordionBody>
+                                                    <div ngbAccordion >
+                                                        <div ngbAccordionItem [collapsed]="false">
+                                                            <h2 ngbAccordionHeader>
+                                                                <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Coleosauria</button>
+                                                            </h2>
+                                                            <div ngbAccordionCollapse>
+                                                                <div ngbAccordionBody>
+                                                                    <svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg>  Tyrannosaurus
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div ngbAccordion >
+                                                        <div ngbAccordionItem [collapsed]="false">
+                                                            <h2 ngbAccordionHeader>
+                                                                <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Megalosauroidea</button>
+                                                            </h2>
+                                                            <div ngbAccordionCollapse>
+                                                                <div ngbAccordionBody>
+                                                                    <svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg>  Megalosaurus
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div ngbAccordion >
+                                        <div ngbAccordionItem [collapsed]="false">
+                                            <h2 ngbAccordionHeader>
+                                                <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Sauropodomorpha</button>
+                                            </h2>
+                                            <div ngbAccordionCollapse>
+                                                <div ngbAccordionBody>
+                                                    <div ngbAccordion >
+                                                        <div ngbAccordionItem [collapsed]="false">
+                                                            <h2 ngbAccordionHeader>
+                                                                <button ngbAccordionButton><svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg> Diplodocus</button>
+                                                            </h2>
+                                                            <div ngbAccordionCollapse>
+                                                                <div ngbAccordionBody>
+                                                                    <svg viewBox="0 0 10 10" width="10"><polygon points="0,0 0,10 10,10 0,10 " style="stroke:white;stroke-width:2"/></svg>  Longus
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</div> -->

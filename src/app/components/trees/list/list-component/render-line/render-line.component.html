@@ -1,0 +1,76 @@
+<div [ngSwitch]="type" style="height: 100%; width: 50px;" [style]="{'width': (tiles * tileWidth) + 'px'}">
+    <!-- Horizontal Line -->
+    <div class="line-wrapper" *ngSwitchCase="'horizontal-line'" >
+        <div class="line horizontal-line"></div>
+        <div class="line horizontal-line"></div> 
+    </div>
+
+    <!-- Vertical Line -->
+    <div class="line-wrapper" *ngSwitchCase="'vertical-line'">
+        <div class="vertical-line-container">
+            <div class="line vertical-line"></div>
+        </div>
+        <div class="line no-space"></div>
+    </div>
+
+    <!-- Vertical Line with Middel Horizontal Line-->
+    <div class="line-wrapper" *ngSwitchCase="'vertical-line-middle'">
+        <div class="vertical-line-container">
+            <div class="line vertical-line"></div>
+        </div>
+        <div class="line horizontal-line"></div>
+    </div>
+
+    <!-- Vertical Line with Middel Horizontal Line and no Bottom Continuation-->
+    <div class="line-wrapper" *ngSwitchCase="'vertical-line-end'">
+        <div class="vertical-line-container">
+            <div class="line vertical-line-half"></div>
+        </div>
+        <div class="line horizontal-line"></div>
+    </div>
+
+    <!-- Horizontal Line with Bottom Continuation-->
+    <div class="line-wrapper bottom" *ngSwitchCase="'vertical-line-bottom'">
+
+        <div class="horizontal-line-container">
+            <div class="line horizontal-line"></div>
+            <div class="line horizontal-line"></div>
+        </div>  
+        
+        <div class="vertical-line-container">
+            <div class="line vertical-line"></div>
+        </div>
+        
+    </div>
+
+    <!-- Ending Horizontal Line with Bottom Continuation-->
+    <div class="line-wrapper bottom" *ngSwitchCase="'vertical-line-bottom-end'">
+
+        <div class="horizontal-line-container">
+            <div class="line horizontal-line"></div>
+            <div class="line no-space"></div>
+        </div>  
+        
+        <div class="vertical-line-container">
+            <div class="line vertical-line"></div>
+        </div>
+        
+    </div>
+
+    <!-- Vertical Line -->
+    <div class="line-wrapper" *ngSwitchCase="'no-line'">
+        <div class="line no-space"></div>
+        <div class="line no-space"></div>
+    </div>
+
+    <!-- Vertical Line -->
+    <div class="line-wrapper" *ngSwitchCase="'arrow-right'">
+        <div class="line horizontal-line"></div>
+        <div class="line arrow-container">
+            <div class="arrow"></div>
+        </div>
+    </div>
+
+    <!-- Default -->
+    <div *ngSwitchDefault>???</div>
+</div>

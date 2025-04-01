@@ -2,6 +2,95 @@
     margin: 80px;
 }
 
+.clade h2, 
+.clade{
+    margin: 0px;
+    padding: 0px;
+}
+.clade h2, 
+.clade h2 div{
+    display: flex;
+}
+
+.clade h2 div label{
+    margin: auto;
+}
+
+.clade h2 div.tiles-1{
+    min-width: 50px;
+    max-width: 50px;
+}
+.clade h2 div.tiles-2{
+    min-width: 100px;
+    max-width: 100px;
+}
+.clade h2 div.tiles-3{
+    min-width: 150px;
+    max-width: 150px;
+}
+.clade h2 div.tiles-4{
+    min-width: 200px;
+    max-width: 200px;
+}
+.clade h2 div.tiles-5{
+    min-width: 250px;
+    max-width: 250px;
+}
+.clade h2 div.tiles-6{
+    min-width: 300px;
+    max-width: 300px;
+}
+
+.clade h2 div.last{
+    width: fit-content;
+    max-width: fit-content;
+    padding-left: 20px;
+}
+
+
+
+.clade h2 .horizontal-line{
+    background-color: white;
+    height: 2px;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 5px;
+    padding-left: 80px !important;
+}
+
+.clade h2 .vertical-line{
+    background-color: white;
+    height: 38px;
+    padding: 1.5px;
+    margin: 0;
+    margin-left: 30px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+
+/* 
+.first{
+    background: red;
+    padding-left: 0px;
+}
+
+.second{
+    background: green;
+}
+
+.third{
+    background: blue;
+}
+
+.fourth{
+    background: violet;
+}
+
+.fifth{
+    background: orange;
+} */
+
 .accordion{
     --bs-accordion-bg: transparent;
     color: white
@@ -35,4 +124,4 @@
     padding: 0;
     margin-left: 50px;
 }
-
+ 
