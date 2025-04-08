@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Species } from '../../shared/models/Species';
-import { sample_Species } from '../../../data';
-import { SPECIES_URL } from '../../shared/constants/urls';
+import { SPECIES_URL, GET_FAMILY } from '../../shared/constants/urls';
 import { Observable } from 'rxjs';
+import { Clade } from '../../shared/models/Clade';
 
 @Injectable({
   providedIn: 'root'
@@ -14,5 +14,9 @@ export class SpeciesService {
 
   getAll(): Observable<Species[]>{
     return this.http.get<Species[]>(SPECIES_URL);
+  }
+
+  getFamily(speciesId: string): Observable<Clade[]>{
+    return this.http.get<Clade[]>(GET_FAMILY + speciesId)
   }
 }

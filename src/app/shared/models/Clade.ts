@@ -8,4 +8,5 @@ export class Clade{
     description?: string
     isFirst!: boolean
     drawHelper?: DrawHelper
+    tier!:number
 }

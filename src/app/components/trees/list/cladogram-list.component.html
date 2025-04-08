@@ -1,5 +1,6 @@
-<div class="cladogram-list">
-    <div class="clade">
+<!-- <div class="cladogram-list">
+    <h2 class="mb-4">Hard coded</h2>
+    <div class="clade ps-5">
         <h2>Dinosauria</h2>
         <h2>
             <pt-render-line [type]="'vertical-line'"/>
@@ -54,9 +55,31 @@
             <div class="last"><label>Diplodocus Longus</label></div>
         </h2>
     </div>
-</div>
+</div> -->
 
-
+<div class="cladogram-list">
+    <!-- <h2 class="mb-4">Generated</h2> -->
+    <h2 class="mb-4"></h2>
+    <div class="clade ps-5" *ngFor="let line of family">
+        <h2>
+            <div *ngFor="let element of line">
+                <div [ngSwitch]="element.type">
+                    <div *ngSwitchCase="'line'">
+                        <pt-render-line [type]="element.lineType" [tiles]="element.tiles"/>
+                    </div>
+                    <div *ngSwitchCase="'filler'">
+                        <pt-render-line [type]="element.lineType" [tiles]="element.tiles"/>
+                        &nbsp;
+                    </div>
+                    <div *ngSwitchCase="'content'">
+                        <div class="{{element.labelClass}}"><label>{{element.content}}</label></div>
+                    </div>
+                    <div *ngSwitchDefault>???</div>
+                </div>
+            </div>
+        </h2>
+    </div>
+</div> 
 
 
 
