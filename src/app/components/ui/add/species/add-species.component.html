@@ -1,13 +1,17 @@
-<form>
-    <label for="binomialNomenclature">Cientific Name</label>
-    <input id="binomialNomenclature" type="text">
-    <br />
-    <br />
-    <label for="genus">Genus</label>
-    <select name="genus" id="genus">
-        <option value="volvo">Triceratops</option>
-        <option value="volvo">Tyrannosaurus</option>
-        <option value="volvo">Megalosauria</option>
-        <option value="volvo">Diplodocus</option>
-    </select>
-</form>
+<div class="container">
+    <div class="details">
+        <form [formGroup]="addSpeciesForm" (ngSubmit)="submit()">
+            <label for="binomialNomenclature">Scientific Name</label>
+            <br/>
+            <input id="binomialNomenclature" formControlName="binomialNomenclature" type="text"/>
+            <br/>
+            <br/>
+            <label for="genus">Genus</label>
+            <br/>
+            <input id="genus" formControlName="genus" type="text"/>
+            <br/>
+            <br/>
+            <input type="submit" value="submit"/>
+        </form>
+    </div>
+</div> 

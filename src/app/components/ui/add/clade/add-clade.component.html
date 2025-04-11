@@ -1,12 +1,18 @@
-<form>
+<form [formGroup]="addSpeciesForm" (ngSubmit)="submit()">
     <label for="name">Name</label>
-    <input id="name" type="text">
-    <br />
-    <br />
-    <label for="genus">parent Clade</label>
-    <select name="genus" id="genus">
-        <option value="volvo">Ornithischia</option>
-        <option value="volvo">Saurischia</option>
-        <option value="volvo">Dinosauria</option>
-    </select>
+    <br/>
+    <input id="name" formControlName="name" type="text"/>
+    <br/>
+    <br/>
+    <label for="parentClade">Parent Clade</label>
+    <br/>
+    <input id="parentClade" formControlName="parentClade" type="text"/>
+    <br/>
+    <br/>
+    <label for="description">Description</label>
+    <br/>
+    <input id="description" formControlName="description" type="text"/>
+    <br/>
+    <br/>
+    <input type="submit" value="submit"/>
 </form>

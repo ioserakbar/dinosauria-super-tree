@@ -12,5 +12,5 @@ import { CladogramListComponent } from '../../trees/list/cladogram-list.componen
   styleUrl: './main.component.css'
 })
 export class MainComponent {
-  active = 2;
+  active = 3;
 }
