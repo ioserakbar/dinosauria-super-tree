@@ -9,4 +9,5 @@ export class Clade{
     isFirst!: boolean
     drawHelper?: DrawHelper
     tier!:number
+    directSons!:string[]
 }

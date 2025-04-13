@@ -45,9 +45,19 @@ export class CladogramListComponent{
 
   getFamilyStringArray(){
     
-    console.log(this.dummyClade)
-
     var result: any[] = []
+
+    var orderedClades: Clade[] = []
+
+    var areCladeOrdered = false;
+
+    var cladeID = this.dummyClade.find(c => c.name == "Dinosauria")?.id 
+    if(typeof cladeID === undefined){
+      console.log("Initial clade not found")
+      return
+    }
+
+    console.log("///////////////////////////////////////////")
 
     this.dummyClade.forEach(clade => {
       var line: any[] = [];

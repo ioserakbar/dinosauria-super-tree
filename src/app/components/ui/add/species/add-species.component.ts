@@ -20,7 +20,6 @@ export class AddSpeciesComponent implements OnInit{
   ){ }
 
   ngOnInit(){
-    console.log("onInit")
     this.addSpeciesForm = this.formBuilder.group({
       binomialNomenclature: ['', [Validators.required]],
       genus: ['', [Validators.required]]
