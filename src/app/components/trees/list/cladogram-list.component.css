@@ -16,7 +16,7 @@
     margin: auto;
 }
 
-.clade h2 div.tiles-1{
+/* .clade h2 div.tiles-1{
     min-width: 50px;
     max-width: 50px;
 }
@@ -39,7 +39,7 @@
 .clade h2 div.tiles-6{
     min-width: 300px;
     max-width: 300px;
-}
+} */
 
 .clade h2 div.last{
     width: fit-content;

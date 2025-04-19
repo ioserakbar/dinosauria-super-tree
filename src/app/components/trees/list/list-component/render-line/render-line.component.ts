@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { NgSwitch, NgSwitchDefault, NgSwitchCase } from '@angular/common';
 import { Input } from '@angular/core';
+import { WIDTH_FOR_LIST } from '../../../../../shared/constants/cssVariables';
 
 @Component({
   selector: 'pt-render-line',
@@ -15,6 +16,6 @@ export class RenderLineComponent {
   @Input()
   tiles = 1;
 
-  tileWidth = 50;
+  tileWidth = WIDTH_FOR_LIST;
 
 }

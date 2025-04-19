@@ -8,6 +8,12 @@ import { CladeService } from '../../../services/clade/clade.service';
 import { SpeciesService } from '../../../services/species/species.service';
 import { forkJoin, Observable } from 'rxjs'
 import { NgFor, NgSwitch, NgSwitchDefault, NgSwitchCase } from '@angular/common';
+import { CladeListGenerationOptions } from '../../../shared/models/cladeListGenerationOptions';
+import { create } from 'domain';
+import { WIDTH_FOR_LIST } from '../../../shared/constants/cssVariables';
+import { timeEnd } from 'console';
+import { VerticalLineEndComponent } from './list-components/vertical-line-end/vertical-line-end.component';
+import { isFloat32Array } from 'util/types';
 
 
 
@@ -23,9 +29,9 @@ export class CladogramListComponent{
   dummyClade: Clade[] = []
   dummySpecies: Species[] = []
 
-  family: any
+  family: any[] = []
 
-  
+  tileSize = WIDTH_FOR_LIST  
 
   constructor( 
     private cladeService: CladeService,
@@ -38,59 +44,237 @@ export class CladogramListComponent{
     forkJoin([$species, $clades]).subscribe(results => {
       this.dummySpecies = results[0]
       this.dummyClade = results[1]
-
-      this.family = this.getFamilyStringArray(); 
+      
+      this.getFamilyStringArray(); 
     })
   }
 
   getFamilyStringArray(){
-    
-    var result: any[] = []
-
-    var orderedClades: Clade[] = []
-
-    var areCladeOrdered = false;
-
     var cladeID = this.dummyClade.find(c => c.name == "Dinosauria")?.id 
     if(typeof cladeID === undefined){
       console.log("Initial clade not found")
       return
     }
-
-    console.log("///////////////////////////////////////////")
-
-    this.dummyClade.forEach(clade => {
-      var line: any[] = [];
-
-      var element: CladeListElement = new CladeListElement();
-        for (let i = 0; i < clade.tier; i++) {
-          var element2: CladeListElement = new CladeListElement();
-  
-          element2.type = "filler"
-          element2.tiles = 1;
-          element2.lineType = "no-line"
-          line.push(element2)
-        }
-        
-        element.type = "content"
-        element.content = clade.name
-        element.labelClass = "tiles-4"
-        line.push(element)
-      
-
-      result.push(line)
-      
-    });
-
-    return result
+    this.generateLine(cladeID!)
   }  
 
-  generateFamilyStringArray(data: Clade[]){ 
-    console.log(data)
+  createLineElement(pElement: {
+    type: string,
+    tiles: number, 
+    content? : string, 
+    lineType?: string, 
+    labelClass?: string 
+  })
+  {
+    var element = new CladeListElement()
+
+    element.type = pElement.type
+    element.tiles = pElement.tiles
+    element.lineType = pElement.lineType
+    element.content = pElement.content
+    element.labelClass = pElement.labelClass
+
+    return element
   }
+
+  createOptions(pOptions:{
+    isFirstChild?: boolean, 
+    isLastChild?: boolean, 
+    previousContent?: any[],
+    isUniqueChild?: boolean,
+    sizeOfPreviousContent?: number
+    verticalLinesPositions?: any[]
+    isGenus?: boolean
+  }){
+    var options = new CladeListGenerationOptions()
+
+    options.isFirstChild = pOptions.isFirstChild
+    options.isLastChild = pOptions.isLastChild
+    options.previousContent = pOptions.previousContent
+    options.isUniqueChild = pOptions.isUniqueChild
+    options.sizeOfPreviousContent = pOptions.sizeOfPreviousContent
+    options.verticalLinesPositions = pOptions.verticalLinesPositions
+    options.isGenus = pOptions.isGenus
+    
+    return options
+  }
+
+  generateLine(cladeId: string, options?: CladeListGenerationOptions){
+    var clade =  this.dummyClade.find( c => c.id == cladeId)!
+    var line: any[] = [];
+    var tilesPassed = options?.sizeOfPreviousContent ?? 0
+
+    if(options?.verticalLinesPositions && !options?.isFirstChild){
+    console.log(clade.name+" has vertical lines assigned", options?.verticalLinesPositions)
+
+    }
+
+    //Continues line 
+    if(options?.isFirstChild){
+
+      line = options.previousContent? options.previousContent : [];
+
+      if(options?.isUniqueChild){
+
+        //Creates horizontal line before the name
+        line.push(this.createLineElement({
+          type: "line", 
+          tiles: 1, 
+          lineType: "horizontal-line"
+        }))
+        tilesPassed ++
+
+      }else{
+
+        //Creates vertical line with a bottom conection before the name
+        line.push(this.createLineElement({
+          type: "line", 
+          tiles: 1,
+          lineType: "vertical-line-bottom"
+        }))
+        tilesPassed ++
+
+      }
+    }
+    //Begins a new line
+    else{
+      
+      for (let i = 1; i <= tilesPassed; i++) {
+
+        if(options?.verticalLinesPositions?.find(c => c == i  )){
+          console.log(options?.verticalLinesPositions)
+          line.push(this.createLineElement({ 
+            type: "line", 
+            tiles: 1, 
+            lineType: "vertical-line"
+          })) 
+
+        }
+        else{
+
+          line.push(this.createLineElement({ 
+            type: "filler", 
+            tiles: 1, 
+            lineType: "no-line"
+          })) 
+
+        }
+            
+      }
+
+      if(clade.tier != 0){
+
+        line.push(this.createLineElement({ 
+          type: "line", 
+          tiles: 1, 
+          lineType: options?.isLastChild ? "vertical-line-end" : "vertical-line-middle"
+        }))
+        tilesPassed ++
+
+      } 
+
+    }
+
+    //Prints the name (this is always the case for now)
+    var contentTiles = 0;
+
+    if(options?.isGenus)
+    {
+      var name = this.dummySpecies.find(f => f.genus == cladeId)?.binomialNomenclature ?? ""
+      contentTiles = this.getContentTileSize(name)
+      line.push(this.createLineElement({ 
+        type: "content", 
+        tiles: contentTiles, 
+        content: name,
+        labelClass: "last"
+      }))
+    }
+    else{
+      contentTiles = this.getContentTileSize(clade.name)
+      line.push(this.createLineElement({ 
+        type: "content", 
+        tiles: contentTiles, 
+        content: clade.name
+      }))
+    }
+    
+    tilesPassed = tilesPassed + contentTiles
+
+    //End of line
+    if(!options?.isFirstChild){
+      this.family.push(line)
+    }
+    
+    var verticalLineTiles: any[]
+    verticalLineTiles = options?.verticalLinesPositions ?? []
+    verticalLineTiles.push(tilesPassed + 1)
+
+    //If line continues (calde has sons)
+    if(clade.directSons.length > 0){
+
+      clade.directSons.forEach((son, index) => {
+
+        //This is for coininuing line
+        if(clade.tier != 0){
+
+          if(index == 0){
+
+            if(clade.directSons.length > 1 ){
+              
+              this.generateLine(son, this.createOptions({
+                isFirstChild: true, 
+                previousContent: line,
+                sizeOfPreviousContent: tilesPassed,
+                verticalLinesPositions: verticalLineTiles
+              }))
+              
+            }else {
+              this.generateLine(son, this.createOptions({
+                isFirstChild: true, 
+                previousContent: line,
+                isUniqueChild: true,
+                sizeOfPreviousContent: tilesPassed, 
+                verticalLinesPositions: verticalLineTiles,
+                isGenus: clade.directSons.length == 1
+
+              }))
   
-  hack(val:any) {
-    return Array.from(val);
+            }
+          } 
+          else if(index + 1 == clade.directSons.length){
+
+            this.generateLine(son, this.createOptions({
+              isLastChild: true,
+              sizeOfPreviousContent: tilesPassed,
+              verticalLinesPositions: verticalLineTiles
+            }))
+
+          }else{
+            console.error("????")
+          }
+          
+        //This is to break line, but  specifing that it's the last chaild so the vertical line can be closed
+        }
+        else if(index + 1 == clade.directSons.length){
+          this.generateLine(son, this.createOptions({
+            isLastChild: true,
+          }))
+
+        }
+        
+        //This is to break line but it's not the first child
+        else{
+          this.generateLine(son, this.createOptions({
+            verticalLinesPositions: [1]
+          }))
+        }
+
+      });
+    }
+  }
+
+  getContentTileSize(content: string){
+    return Math.ceil((content.length * 18) / this.tileSize)
   }
 
 }

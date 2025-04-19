@@ -1,5 +1,5 @@
 export class CladeListElement{
-    type!: string
+    type?: string
     lineType?: string
     tiles?: number
     labelClass?: string

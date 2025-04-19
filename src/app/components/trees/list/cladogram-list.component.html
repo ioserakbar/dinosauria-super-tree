@@ -1,4 +1,4 @@
-<!-- <div class="cladogram-list">
+<div class="cladogram-list">
     <h2 class="mb-4">Hard coded</h2>
     <div class="clade ps-5">
         <h2>Dinosauria</h2>
@@ -8,7 +8,7 @@
         </h2>
         <h2>
             <pt-render-line [type]="'vertical-line-middle'"/>
-            <div class="tiles-4"><label>Ornistichia</label></div>
+            <div style="width: 200px"><label>Ornistichia</label></div>
             <pt-render-line [type]="'horizontal-line'" />
             <div class="last"><label>Triceratops Horridus</label></div>
         </h2>
@@ -18,11 +18,11 @@
         </h2>
         <h2>
             <pt-render-line [type]="'vertical-line-end'"/>
-            <div class="tiles-4"><label>Saurischia</label></div>
+            <div style="width : 200px"><label>Saurischia</label></div>
             <pt-render-line [type]="'vertical-line-bottom'"/>
-            <div class="tiles-4"><label>Theropoda</label></div>
+            <div style="width : 200px"><label>Theropoda</label></div>
             <pt-render-line [type]="'vertical-line-bottom'"/>
-            <div class="tiles-4"><label>Coleosauria</label></div>
+            <div style="width : 200px"><label>Coleosauria</label></div>
             <pt-render-line [type]="'horizontal-line'"/>
             <div class="last"><label>Tyrannosaurus Rex</label></div>
         </h2>
@@ -38,7 +38,7 @@
             <pt-render-line [type]="'vertical-line'"/>
             <pt-render-line [type]="'no-line'" [tiles]="4"/>
             <pt-render-line [type]="'vertical-line-end'"/>
-            <div class="tiles-6"><label>Megalosauroidea</label></div>
+            <div style="width : 300px"><label>Megalosauroidea</label></div>
             <pt-render-line [type]="'horizontal-line'"/>
             <div class="last"><label>Megalosaurus bucklandii</label></div>
         </h2>
@@ -50,12 +50,12 @@
         <h2>
             <pt-render-line [type]="'no-line'" [tiles]="5"/>
             <pt-render-line [type]="'vertical-line-end'"/>
-            <div class=" tiles-6"><label>Sauropodomorpha</label></div>
+            <div style="width : 300px"><label>Sauropodomorpha</label></div>
             <pt-render-line [type]="'horizontal-line'"/>
             <div class="last"><label>Diplodocus Longus</label></div>
         </h2>
     </div>
-</div> -->
+</div>
 
 <div class="cladogram-list">
     <!-- <h2 class="mb-4">Generated</h2> -->
@@ -69,10 +69,9 @@
                     </div>
                     <div *ngSwitchCase="'filler'">
                         <pt-render-line [type]="element.lineType" [tiles]="element.tiles"/>
-                        &nbsp;
                     </div>
                     <div *ngSwitchCase="'content'">
-                        <div class="{{element.labelClass}}"><label>{{element.content}}</label></div>
+                        <div class="{{element.labelClass}}" [style]="{'width': (element.tiles * tileSize) + 'px'}"><label>{{element.content}}</label></div>
                     </div>
                     <div *ngSwitchDefault>???</div>
                 </div>
