@@ -16,3 +16,15 @@
     <br/>
     <input type="submit" value="submit"/>
 </form>
+
+<div class="cladogram-list" class="row">
+    <div class="clade ps-5" *ngFor="let clade of testData" class="col-3"> 
+        <div class="mb-3" style="width:fit-content;"> 
+            <h2 style="font-size: 30px;">{{clade.name}}</h2>
+            <h2  class="ms-5" style="font-size: 30px;">Polar coords: ({{clade.drawHelper?.coords?.angle}}, {{clade.drawHelper?.coords?.distance}})</h2> 
+            <h2  class="ms-5" style="font-size: 30px;">Total sons: {{clade.drawHelper?.totalSons}}</h2> 
+            <h2  class="ms-5" style="font-size: 30px;">Arch orientation: {{clade.drawHelper?.arcOrientation}}</h2> 
+            <h2  class="ms-5" style="font-size: 30px;">Tier: {{clade.tier}}</h2> 
+        </div>
+    </div>
+</div> 

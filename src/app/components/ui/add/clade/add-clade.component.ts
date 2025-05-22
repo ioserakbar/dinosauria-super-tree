@@ -2,14 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CladeService } from '../../../../services/clade/clade.service';
 import { ICladeInterface } from '../../../../shared/interfaces/ICladeRegister';
+import { Clade } from '../../../../shared/models/Clade';
+import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'pt-add-clade',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule,  NgFor],
   templateUrl: './add-clade.component.html',
   styleUrl: './add-clade.component.css'
 })
 export class AddCladeComponent implements OnInit{
+
+  dummyClade: Clade[] = []
+
+  testData: Clade[] = []
 
   addSpeciesForm!: FormGroup;
   isSubmited = false;
@@ -20,11 +26,35 @@ export class AddCladeComponent implements OnInit{
   ){ }
 
   ngOnInit(){
+
+    const $clades = this.cladeService.getAll()
+
+    $clades.subscribe({
+      next: value => {
+        this.testData = value
+        console.log(value)
+        this.calcTestData()
+      }
+    })
+
     this.addSpeciesForm = this.formBuilder.group({
       name: ['', [Validators.required]],
       parentClade: ['', [Validators.required]],
       description: ['']
     })
+
+
+    
+  }
+
+  calcTestData(){
+
+    this.dummyClade.forEach(clade => {
+      if(clade.tier = 0)
+
+      var availableAngle = 360 / clade.directSons.length
+    })
+
   }
 
   get fc(){

@@ -54,6 +54,7 @@ export class RoundCladogram {
             this.dummyClade = results[1]
             this.tree = new Tree(this.dummyClade)
             this.draw()
+            console.log(this.dummyClade)
         })
         
     }
