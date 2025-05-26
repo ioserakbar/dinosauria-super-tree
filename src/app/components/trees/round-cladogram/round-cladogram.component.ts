@@ -40,6 +40,9 @@ export class RoundCladogram {
     MIN_ZOOM = 0.1;
     dragStart = { x: 0, y: 0 }
 
+    //debug
+    renderElementCount = 0;
+
     constructor(
         @Inject(PLATFORM_ID) private platformId: Object, 
         private cladeService: CladeService,
@@ -54,7 +57,6 @@ export class RoundCladogram {
             this.dummyClade = results[1]
             this.tree = new Tree(this.dummyClade)
             this.draw()
-            console.log(this.dummyClade)
         })
         
     }
@@ -77,7 +79,6 @@ export class RoundCladogram {
     adjuztZoom(e: WheelEvent) {
         if (!this.isDragging) {
             var delta = e.deltaY * this.SCROLL_SENSITIVITY
-            console.log()
             if (delta) {
                 this.zoom -= delta
             }
@@ -132,12 +133,15 @@ export class RoundCladogram {
         
         //Empties the canvas
         this.context?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
-
+        
+        this.renderElementCount = 0
+        console.log("/////////////////////////DRAWING//////////////////////////////")
         this.renderElement(firstClade)
 
     }
 
     renderElement(cladeId: String){
+        ++ this.renderElementCount
         var ctx = this.context;
 
         const center = {
@@ -150,6 +154,7 @@ export class RoundCladogram {
             console.error("Clade " + cladeId + " NOT found.")
             return
         }
+
 
         /*
             - Move to the next step ALWAYS (if there is one)
@@ -169,18 +174,27 @@ export class RoundCladogram {
         ctx!.strokeStyle = "red";
         ctx!.lineCap = "round";
         
+        
+
         //Renders center of cladogram, only the first clade enters this if
-        if(clade.tier === 0){
-            ctx!.lineWidth = this.lineWidth;
-            ctx?.beginPath();
-            ctx?.moveTo(center.x, center.y)
-            ctx?.arc(center.x, center.y, 6 * this.zoom, 0, 2 * Math.PI)
-            ctx?.fill()
-        }
+        
+        ctx!.lineWidth = this.lineWidth;
+        ctx?.beginPath();
+        ctx?.moveTo(center.x, center.y)
+        ctx?.arc(center.x, center.y, 6 * this.zoom, 0, 2 * Math.PI)
+        ctx?.fill()
+        
+        // ctx?.save()
+        // ctx?.translate(coords.x, coords.y);
+        // ctx?.beginPath();
+        // ctx!.font = 18 * this.zoom + "px Arial";
+        // ctx?.fillText(clade.name, 10, 5 * this.zoom);
+        // ctx?.restore();
 
         //This means the clade has at least a son, so there is a next step 
         if(clade.directSons?.length! > 0){
             if(clade.directSons?.length! == 1){
+                console.log(clade.name + " tiene un solo hijo")
                 const lastCoords = this.getCardinalCoordsFromPolar(this.treeRadius, angle)
                 ctx?.beginPath()
                 ctx?.moveTo(coords.x, coords.y)
@@ -197,11 +211,12 @@ export class RoundCladogram {
             //If it has more than 1 sons, we ned to render an arch 
             if(clade.directSons?.length > 1){
                 clade.directSons.forEach(sonId => {
+                    
                     var son = this.dummyClade.find(c => c.id == sonId)!;
                     const sonsDistance = son.drawHelper!.coords.distance
                     const sonsAngle = son.drawHelper!.coords.angle
-                    const startAngle = - angle * ( Math.PI / 180)
-                    const endAngle =  - sonsAngle * ( Math.PI / 180)
+                    const startAngle =  angle * ( Math.PI / 180)
+                    const endAngle =  sonsAngle * ( Math.PI / 180)
 
                     ctx?.beginPath()
                     ctx?.moveTo(nextStep.x, nextStep.y)
@@ -218,8 +233,7 @@ export class RoundCladogram {
         }
 
 
-        //This is when the path has reached the end, this displays the name of the genus
-        //BTW for some weird reason an emtpy array returns a length of 1
+        //This is when the path has reached the end, this displays the name of the species
         if(clade.directSons.length == 0){
             let padding = 10 * this.zoom;
 
@@ -242,30 +256,26 @@ export class RoundCladogram {
 
             }
             else if(textAngle >= 90 && textAngle < 180) {
-                ctx!.textAlign = "left"
-                textAngle = textAngle - 180;
-                
+                ctx!.textAlign = "right"
+                textAngle = textAngle + 180
+                padding = padding * -1
             } 
             else if(textAngle >= 180 && textAngle < 270){
                 ctx!.textAlign = "right"
-                textAngle = textAngle - 180;
+                textAngle = textAngle + 180
                 padding = padding * -1
 
             }else if(textAngle >= 270){
-                ctx!.textAlign = "right"
-                padding = padding * -1
+                ctx!.textAlign = "left"
 
             }
-
-            ctx?.rotate( textAngle * ( Math.PI / 180) );
+            
+            ctx?.rotate( textAngle * (Math.PI / 180));
             ctx!.font = 18 * this.zoom + "px Arial";
-            console.log(clade.id, distance)
-            var name = this.dummySpecies.find(s => s.genus == clade!.id)!.binomialNomenclature
-            ctx?.fillText(name, padding, 5 * this.zoom);
+            //var name = this.dummySpecies.find(s => s.genus == clade!.id)?.binomialNomenclature ?? "??????????????"
+            ctx?.fillText(clade.name, padding, 5 * this.zoom);
             ctx?.restore();
         }
-
-
 
     }
     
@@ -374,7 +384,7 @@ export class RoundCladogram {
 
     getCardinalCoordsFromPolar(distance: number, angle: number) {
         //0° siendo el este y 180° el oeste
-        angle = -angle * (Math.PI / 180)
+        angle = angle * (Math.PI / 180)
         var x = (this.center.x + (distance * Math.cos(angle)) * this.zoom) + this.offset.x
         var y = (this.center.y + (distance * Math.sin(angle)) * this.zoom) + this.offset.y
 

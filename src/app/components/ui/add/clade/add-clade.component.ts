@@ -4,76 +4,77 @@ import { CladeService } from '../../../../services/clade/clade.service';
 import { ICladeInterface } from '../../../../shared/interfaces/ICladeRegister';
 import { Clade } from '../../../../shared/models/Clade';
 import { NgFor } from '@angular/common';
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
 @Component({
-  selector: 'pt-add-clade',
-  imports: [ReactiveFormsModule,  NgFor],
-  templateUrl: './add-clade.component.html',
-  styleUrl: './add-clade.component.css'
+	selector: 'pt-add-clade',
+	imports: [ReactiveFormsModule, NgFor, NgMultiSelectDropDownModule],
+	templateUrl: './add-clade.component.html',
+	styleUrl: './add-clade.component.css'
 })
-export class AddCladeComponent implements OnInit{
+export class AddCladeComponent implements OnInit {
+	allClades: Clade[] = []
 
-  dummyClade: Clade[] = []
+	addCladeForm!: FormGroup;
+	isSubmited = false;
 
-  testData: Clade[] = []
+	constructor(
+		private formBuilder: FormBuilder,
+		private cladeService: CladeService
+	) { }
 
-  addSpeciesForm!: FormGroup;
-  isSubmited = false;
+	ngOnInit() {
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private cladeService: CladeService
-  ){ }
+		const $clades = this.cladeService.getAll()
 
-  ngOnInit(){
+		$clades.subscribe({
+			next: value => {
+				this.allClades = value
+			}
+		})
 
-    const $clades = this.cladeService.getAll()
+		this.addCladeForm = this.formBuilder.group({
+			name: ['', [Validators.required]],
+			parentClade: ['', [Validators.required]],
+			description: ['']
+		})
+	}
 
-    $clades.subscribe({
-      next: value => {
-        this.testData = value
-        console.log(value)
-        this.calcTestData()
-      }
-    })
-
-    this.addSpeciesForm = this.formBuilder.group({
-      name: ['', [Validators.required]],
-      parentClade: ['', [Validators.required]],
-      description: ['']
-    })
+	getAllCladeNames(){
+		return this.allClades.map(c => c.name)
+	}
 
 
-    
-  }
+	get fc() {
+		return this.addCladeForm.controls
+	}
 
-  calcTestData(){
+	submit() {
 
-    this.dummyClade.forEach(clade => {
-      if(clade.tier = 0)
+		this.isSubmited = true
 
-      var availableAngle = 360 / clade.directSons.length
-    })
+		if (this.addCladeForm.invalid) return
 
-  }
+		const fv = this.addCladeForm.value
+		const newClade: ICladeInterface = {
+			name: fv.name,
+			parentClade: fv.parentClade,
+			description: fv.description,
+			isFirst: false,
+			tier: -1
+		}
 
-  get fc(){
-    return this.addSpeciesForm.controls
-  }
+		// Blocking posibility of clade with more sons than 2
+		var parentClade = this.allClades.find(c => c.name == newClade.parentClade)
 
-  submit(){
-    console.log(this.addSpeciesForm)
-    this.isSubmited = true
-    if(this.addSpeciesForm.invalid) return
-    const fv = this.addSpeciesForm.value
-    const newClade : ICladeInterface = {
-      name: fv.name,
-      parentClade: fv.parentClade,
-      description: fv.description
-    }
+		console.log(newClade.parentClade, parentClade)
+		if ( parentClade!.directSons!.length >= 2){
+			console.log("More than two sons not permitted")
+			return 
+		}
 
-    this.cladeService.addClade(newClade).subscribe(_ => { 
-      console.log("species added succesfully")
-    })
-  }
+		this.cladeService.addClade(newClade).subscribe(_ => {
+			console.log("species added succesfully")
+		})
+	}
 }

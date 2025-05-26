@@ -1,24 +1,30 @@
-<form [formGroup]="addSpeciesForm" (ngSubmit)="submit()">
-    <label for="name">Name</label>
-    <br/>
-    <input id="name" formControlName="name" type="text"/>
-    <br/>
-    <br/>
-    <label for="parentClade">Parent Clade</label>
-    <br/>
-    <input id="parentClade" formControlName="parentClade" type="text"/>
-    <br/>
-    <br/>
-    <label for="description">Description</label>
-    <br/>
-    <input id="description" formControlName="description" type="text"/>
-    <br/>
-    <br/>
-    <input type="submit" value="submit"/>
-</form>
+<div class="container">
+    <form [formGroup]="addCladeForm" (ngSubmit)="submit()">
+        <label for="name">Name</label>
+        <br/>
+        <input id="name" formControlName="name" type="text"/>
+        <br/>
+        <br/>
+        <label for="parentClade">Parent Clade</label>
+        <br/>
+        <select formControlName="parentClade">
+            <option *ngFor="let item of this.allClades; let i = index" value="{{item.id}}" [selected]="i == 0">
+                {{item.name}}
+            </option>
+        </select>
+        <br/>
+        <br/>
+        <label for="description">Description</label>
+        <br/>
+        <input id="description" formControlName="description" type="text"/>
+        <br/>
+        <br/>
+        <input type="submit" value="submit"/>
+    </form>
 
-<div class="cladogram-list" class="row">
-    <div class="clade ps-5" *ngFor="let clade of testData" class="col-3"> 
+</div>
+<div class="cladogram-list row">
+    <div class="col-3 clade ps-5" *ngFor="let clade of allClades" > 
         <div class="mb-3" style="width:fit-content;"> 
             <h2 style="font-size: 30px;">{{clade.name}}</h2>
             <h2  class="ms-5" style="font-size: 30px;">Polar coords: ({{clade.drawHelper?.coords?.angle}}, {{clade.drawHelper?.coords?.distance}})</h2> 
