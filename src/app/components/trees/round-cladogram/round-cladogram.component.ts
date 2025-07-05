@@ -1,11 +1,10 @@
-import { Component, HostListener, ViewChild, Inject, PLATFORM_ID, ElementRef, Host } from '@angular/core'
+import { Component, HostListener, ViewChild, Inject, PLATFORM_ID, ElementRef } from '@angular/core'
 import { isPlatformBrowser } from '@angular/common'
 import { Tree } from '../../../shared/models/Tree'
 import { CladeService } from '../../../services/clade/clade.service'
-import { Clade } from '../../../shared/models/Clade'
 import { SpeciesService } from '../../../services/species/species.service'
+import { Clade } from '../../../shared/models/Clade'
 import { Species } from '../../../shared/models/Species'
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals'
 import { forkJoin } from 'rxjs'
 @Component({
     selector: 'pt-round-cladogram',
@@ -26,11 +25,12 @@ export class RoundCladogram {
 
     //tree variables
     treeRadius = 400;
+    treeRadiusSteps = 100;
     maxCladeDivisions = 4;
     tree?: Tree;
 
     //data variables
-    dummyClade: Clade[] = []
+    allClades: Clade[] = []
     dummySpecies: Species[] = []
 
     //Controls variables
@@ -40,9 +40,6 @@ export class RoundCladogram {
     MIN_ZOOM = 0.1;
     dragStart = { x: 0, y: 0 }
 
-    //debug
-    renderElementCount = 0;
-
     constructor(
         @Inject(PLATFORM_ID) private platformId: Object, 
         private cladeService: CladeService,
@@ -51,11 +48,12 @@ export class RoundCladogram {
 
         const $species = this.speciesService.getAll()
         const $clades = this.cladeService.getAll()
-
+        
         forkJoin([$species, $clades]).subscribe(results => {
             this.dummySpecies = results[0]
-            this.dummyClade = results[1]
-            this.tree = new Tree(this.dummyClade)
+            this.allClades = results[1]
+            this.tree = new Tree(this.allClades)
+            this.treeRadius = (this.getMaxTier() + 1) * this.treeRadiusSteps
             this.draw()
         })
         
@@ -69,7 +67,6 @@ export class RoundCladogram {
     }
 
     // #region controls and listeners
-
     @HostListener('window:resize', ['$event'])
     onResize() {
         this.resizeCanvas();
@@ -92,12 +89,22 @@ export class RoundCladogram {
     };
 
     @HostListener('mouseup', ['$event'])
-    onPointerUp() {
+    onPointerUp(e: MouseEvent) {
+        console.log("------------------------------------")
+		console.log("Center", this.center)
+		console.log("Offset", this.offset)
+		console.log("DragStart", this.offset)
+		console.log("Mouse Position", this.getEventLocation(e))
+		console.log("//////////////////////////////////////////////////////////////////////////")
         this.isDragging = false;
     }
 
     @HostListener('mousedown', ['$event'])
     onPointerDown(e: MouseEvent) {
+        console.log("Center", this.center)
+		console.log("Offset", this.offset)
+		console.log("DragStart", this.offset)
+		console.log("Mouse Position", this.getEventLocation(e))
         this.isDragging = true;
         this.dragStart.x = this.getEventLocation(e).x - this.offset.x
         this.dragStart.y = this.getEventLocation(e).y - this.offset.y
@@ -105,6 +112,7 @@ export class RoundCladogram {
 
     @HostListener('mousemove', ['$event'])
     onPointerMove(e: MouseEvent) {
+        
         if (this.isDragging) {
             this.offset.x = this.getEventLocation(e).x - this.dragStart.x
             this.offset.y = this.getEventLocation(e).y - this.dragStart.y
@@ -125,23 +133,29 @@ export class RoundCladogram {
 
     //#region drawing functions
     draw(){
-        //Find first clade
-        var firstClade = this.dummyClade.find(c => c.tier == 0)?.id
 
+        //Find first clade
+        var firstClade = this.allClades.find(c => c.tier == 0)?.id
         if(this.context === undefined || firstClade === undefined)
             return
         
         //Empties the canvas
         this.context?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
         
-        this.renderElementCount = 0
-        console.log("/////////////////////////DRAWING//////////////////////////////")
         this.renderElement(firstClade)
+    }
 
+    getMaxTier(){
+        var maxTier = 0;
+
+        this.allClades.forEach(clade => {
+            maxTier = clade.tier > maxTier ? clade.tier : maxTier
+        });
+
+        return maxTier
     }
 
     renderElement(cladeId: String){
-        ++ this.renderElementCount
         var ctx = this.context;
 
         const center = {
@@ -149,12 +163,11 @@ export class RoundCladogram {
             y: this.currentCenter.y
         }
 
-        var clade = this.dummyClade.find(c => c.id == cladeId)
+        var clade = this.allClades.find(c => c.id == cladeId)
         if(clade === undefined){
             console.error("Clade " + cladeId + " NOT found.")
             return
         }
-
 
         /*
             - Move to the next step ALWAYS (if there is one)
@@ -193,9 +206,9 @@ export class RoundCladogram {
 
         //This means the clade has at least a son, so there is a next step 
         if(clade.directSons?.length! > 0){
-            if(clade.directSons?.length! == 1){
-                console.log(clade.name + " tiene un solo hijo")
-                const lastCoords = this.getCardinalCoordsFromPolar(this.treeRadius, angle)
+
+            if(clade.directSons!.length! == 1){
+                const lastCoords = this.getCardinalCoordsFromPolar(distance + this.treeRadiusSteps, angle)
                 ctx?.beginPath()
                 ctx?.moveTo(coords.x, coords.y)
                 ctx?.lineTo(lastCoords.x, lastCoords.y)
@@ -212,7 +225,7 @@ export class RoundCladogram {
             if(clade.directSons?.length > 1){
                 clade.directSons.forEach(sonId => {
                     
-                    var son = this.dummyClade.find(c => c.id == sonId)!;
+                    var son = this.allClades.find(c => c.id == sonId)!;
                     const sonsDistance = son.drawHelper!.coords.distance
                     const sonsAngle = son.drawHelper!.coords.angle
                     const startAngle =  angle * ( Math.PI / 180)
@@ -220,8 +233,9 @@ export class RoundCladogram {
 
                     ctx?.beginPath()
                     ctx?.moveTo(nextStep.x, nextStep.y)
+
                     //The var arch orientation is a flag to know where is the arc drawing to
-                    ctx?.arc(center.x, center.y, sonsDistance * this.zoom, startAngle, endAngle, son.drawHelper!.arcOrientation)
+                    ctx?.arc(center.x, center.y, sonsDistance * this.zoom, startAngle, endAngle, !son.drawHelper!.arcOrientation)
                     ctx?.stroke() 
 
                     this.renderElement(sonId)
@@ -253,7 +267,6 @@ export class RoundCladogram {
             let textAngle =  angle ;
             if(textAngle < 90){
                 ctx!.textAlign = "left"
-
             }
             else if(textAngle >= 90 && textAngle < 180) {
                 ctx!.textAlign = "right"
@@ -267,12 +280,11 @@ export class RoundCladogram {
 
             }else if(textAngle >= 270){
                 ctx!.textAlign = "left"
-
             }
             
             ctx?.rotate( textAngle * (Math.PI / 180));
             ctx!.font = 18 * this.zoom + "px Arial";
-            //var name = this.dummySpecies.find(s => s.genus == clade!.id)?.binomialNomenclature ?? "??????????????"
+            //var name = this.dummySpecies.find(s => s.genus == clade!.id)?.binomialNomenclature ?? "??????????????" 
             ctx?.fillText(clade.name, padding, 5 * this.zoom);
             ctx?.restore();
         }

@@ -1,25 +1,36 @@
 <div class="container">
-    <form [formGroup]="addCladeForm" (ngSubmit)="submit()">
-        <label for="name">Name</label>
-        <br/>
-        <input id="name" formControlName="name" type="text"/>
-        <br/>
-        <br/>
-        <label for="parentClade">Parent Clade</label>
-        <br/>
-        <select formControlName="parentClade">
-            <option *ngFor="let item of this.allClades; let i = index" value="{{item.id}}" [selected]="i == 0">
-                {{item.name}}
-            </option>
-        </select>
-        <br/>
-        <br/>
-        <label for="description">Description</label>
-        <br/>
-        <input id="description" formControlName="description" type="text"/>
-        <br/>
-        <br/>
-        <input type="submit" value="submit"/>
+    <form [formGroup]="addCladeForm" (ngSubmit)="submit()" class="row">
+        <div class="first-col col-6">
+            <label for="name">Name</label>
+            <br/>
+            <input id="name" formControlName="name" type="text" #name (change)="setNewCladeName(name.value)"/>
+            <br/>
+            <br/>
+            <label for="parentClade">Parent Clade</label>
+            <br/>
+            <select formControlName="parentClade" (change)="changeDirectSons(parentclade.value)"  #parentclade>
+                <option *ngFor="let item of this.allClades; let i = index" value="{{item.id}}" [selected]="i == 0" >
+                    {{item.name}}
+                </option>
+            </select>
+            <br/>
+            <br/>
+            <label for="description">Description</label>
+            <br/>
+            <input id="description" formControlName="description" type="text"/>
+            <br/>
+            <br/>
+            <input type="submit" value="submit"/>
+        </div>
+        <div class="col-6" *ngIf="showOptionsForChildrenManagment">
+            <label for="directSons"> Choose option for existing children</label>
+            <br/>
+            <select formControlName="directSons" id="directSons" #directSons>
+                <option *ngFor="let item of this.directSonsOpions; let i = index" ngValue="{{item.id}}" [selected]="i == 0" >
+                    {{item.name}}
+                </option>
+            </select>
+        </div>
     </form>
 
 </div>

@@ -26,7 +26,7 @@ import { isFloat32Array } from 'util/types';
 export class CladogramListComponent{
   
   //data variables
-  dummyClade: Clade[] = []
+  allClades: Clade[] = []
   dummySpecies: Species[] = []
 
   family: any[] = []
@@ -43,16 +43,15 @@ export class CladogramListComponent{
 
     forkJoin([$species, $clades]).subscribe(results => {
       this.dummySpecies = results[0]
-      this.dummyClade = results[1]
+      this.allClades = results[1]
       
       this.getFamilyStringArray(); 
     })
   }
 
   getFamilyStringArray(){
-    var cladeID = this.dummyClade.find(c => c.name == "Dinosauria")?.id 
+    var cladeID = this.allClades.find(c => c.name == "Dinosauria")?.id 
     if(typeof cladeID === undefined){
-      console.log("Initial clade not found")
       return
     }
     this.generateLine(cladeID!)
@@ -100,19 +99,14 @@ export class CladogramListComponent{
   }
 
   generateLine(cladeId: string, options?: CladeListGenerationOptions){
-    var clade =  this.dummyClade.find( c => c.id == cladeId)!
+    var clade =  this.allClades.find( c => c.id == cladeId)!
     var line: any[] = [];
     var tilesPassed = options?.sizeOfPreviousContent ?? 0
-
-    if(options?.verticalLinesPositions && !options?.isFirstChild){
-    console.log(clade.name+" has vertical lines assigned", options?.verticalLinesPositions)
-
-    }
 
     //Continues line 
     if(options?.isFirstChild){
 
-      line = options.previousContent? options.previousContent : [];
+      line = options.previousContent ?? [];
 
       if(options?.isUniqueChild){
 
@@ -136,13 +130,13 @@ export class CladogramListComponent{
 
       }
     }
+
     //Begins a new line
     else{
       
       for (let i = 1; i <= tilesPassed; i++) {
 
-        if(options?.verticalLinesPositions?.find(c => c == i  )){
-          console.log(options?.verticalLinesPositions)
+        if(options?.verticalLinesPositions?.find( c => c == i )){
           line.push(this.createLineElement({ 
             type: "line", 
             tiles: 1, 
@@ -175,7 +169,7 @@ export class CladogramListComponent{
 
     }
 
-    //Prints the name (this is always the case for now)
+    // Prints the name (this is always the case for now)
     var contentTiles = 0;
 
     if(options?.isGenus)
@@ -214,6 +208,8 @@ export class CladogramListComponent{
 
       clade.directSons.forEach((son, index) => {
 
+        var grandChildren = this.allClades.find(c => c.id == son)?.directSons.length
+
         //This is for coininuing line
         if(clade.tier != 0){
 
@@ -228,7 +224,7 @@ export class CladogramListComponent{
                 verticalLinesPositions: verticalLineTiles
               }))
               
-            }else {
+            }else if(grandChildren == 0){
               this.generateLine(son, this.createOptions({
                 isFirstChild: true, 
                 previousContent: line,
@@ -238,7 +234,16 @@ export class CladogramListComponent{
                 isGenus: clade.directSons.length == 1
 
               }))
-  
+            }
+            else{
+              this.generateLine(son, this.createOptions({
+                isFirstChild: true, 
+                previousContent: line,
+                isUniqueChild: true,
+                sizeOfPreviousContent: tilesPassed,
+                verticalLinesPositions: verticalLineTiles
+
+              }))
             }
           } 
           else if(index + 1 == clade.directSons.length){

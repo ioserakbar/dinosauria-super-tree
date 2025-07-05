@@ -18,7 +18,6 @@ export class CladeService {
   }
 
   addClade(newSpecies: ICladeInterface): Observable<Clade>{
-    console.log(newSpecies)
     return this.http.post<Clade>(ADD_CLADE, newSpecies)
   }
 }

@@ -1,7 +1,9 @@
 export interface ICladeInterface{
     name: String,
-    parentClade: String, 
+    parentCladeId: String, 
     description: String,
     isFirst: Boolean,
-    tier: number
+    tier: number,
+    directSons: string[],
+    mergeMethod:  string
 }

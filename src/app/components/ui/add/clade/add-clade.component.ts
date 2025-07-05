@@ -3,12 +3,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CladeService } from '../../../../services/clade/clade.service';
 import { ICladeInterface } from '../../../../shared/interfaces/ICladeRegister';
 import { Clade } from '../../../../shared/models/Clade';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
 @Component({
 	selector: 'pt-add-clade',
-	imports: [ReactiveFormsModule, NgFor, NgMultiSelectDropDownModule],
+	imports: [ReactiveFormsModule, NgFor, NgMultiSelectDropDownModule, NgIf],
 	templateUrl: './add-clade.component.html',
 	styleUrl: './add-clade.component.css'
 })
@@ -18,6 +18,13 @@ export class AddCladeComponent implements OnInit {
 	addCladeForm!: FormGroup;
 	isSubmited = false;
 
+	showOptionsForChildrenManagment = false
+	directSonsOpions: { name: string, id: string }[] = []
+
+	selectedParentClade?: Clade = new Clade
+	newCladeTempName: string = ""
+
+
 	constructor(
 		private formBuilder: FormBuilder,
 		private cladeService: CladeService
@@ -26,7 +33,6 @@ export class AddCladeComponent implements OnInit {
 	ngOnInit() {
 
 		const $clades = this.cladeService.getAll()
-
 		$clades.subscribe({
 			next: value => {
 				this.allClades = value
@@ -36,6 +42,7 @@ export class AddCladeComponent implements OnInit {
 		this.addCladeForm = this.formBuilder.group({
 			name: ['', [Validators.required]],
 			parentClade: ['', [Validators.required]],
+			directSons: ['', [Validators.required]],
 			description: ['']
 		})
 	}
@@ -44,6 +51,62 @@ export class AddCladeComponent implements OnInit {
 		return this.allClades.map(c => c.name)
 	}
 
+	setNewCladeName(newName: string){
+		this.newCladeTempName = newName
+	}
+
+	changeDirectSons(selectedCladeId: string){
+		this.selectedParentClade = this.allClades.find(c => c.id == selectedCladeId)!
+	
+		console.log("antes", this.directSonsOpions)
+		var pDirectSonsOpions = []
+
+		//This means it has one son, so the options should be replae it OR be its sibling
+		if(this.selectedParentClade?.directSons.length == 1){
+
+			var sonClade = this.allClades.find(c => c.id == this.selectedParentClade?.directSons[0])!
+
+			pDirectSonsOpions.push({
+				name: "The new clade will be the new parent of " + sonClade.name,
+				id: sonClade.id + "-parent"
+			})
+
+			pDirectSonsOpions.push({
+				name: "The new clade will be a sibling of " + sonClade.name,
+				id: sonClade.id + "-sibling"
+			})
+
+		}
+		else{
+
+			this.selectedParentClade.directSons.forEach(son =>{
+				var sonClade = this.allClades.find(c => c.id == son)!
+				
+				pDirectSonsOpions.push({
+					name: "The new clade will be the new parent of " + sonClade.name,
+					id: sonClade.id + "-parent"
+				})
+			})
+
+			pDirectSonsOpions.push({
+				name: "Both will be children of the new calde",
+				id: "0-both"
+			})
+
+		}
+		
+		this.directSonsOpions = pDirectSonsOpions
+
+		console.log("despues", this.directSonsOpions)
+
+
+		if(this.selectedParentClade.directSons.length <= 0){
+			this.showOptionsForChildrenManagment = false
+		}
+		else{
+			this.showOptionsForChildrenManagment = true
+		}
+	}
 
 	get fc() {
 		return this.addCladeForm.controls
@@ -53,25 +116,41 @@ export class AddCladeComponent implements OnInit {
 
 		this.isSubmited = true
 
-		if (this.addCladeForm.invalid) return
+		if (this.addCladeForm.invalid) {
+			console.log("form is invalid", this.addCladeForm)
+			return
+		}
 
 		const fv = this.addCladeForm.value
+
+		console.log(this.addCladeForm)
+
+		var newCladeDirectSons: string[] = []
+
+		var rawDirectSons = fv.directSons.split("-")
+
+		var directSonsId = rawDirectSons[0]
+		var method = rawDirectSons[1]
+		
+		if(method == "both"){
+			newCladeDirectSons = [ ...this.selectedParentClade?.directSons!]
+		}
+		else {
+			newCladeDirectSons.push(directSonsId)
+		}
+
+		
 		const newClade: ICladeInterface = {
 			name: fv.name,
-			parentClade: fv.parentClade,
+			parentCladeId: fv.parentClade,
 			description: fv.description,
 			isFirst: false,
-			tier: -1
+			tier: -1,
+			directSons: newCladeDirectSons,
+			mergeMethod: method
 		}
 
-		// Blocking posibility of clade with more sons than 2
-		var parentClade = this.allClades.find(c => c.name == newClade.parentClade)
-
-		console.log(newClade.parentClade, parentClade)
-		if ( parentClade!.directSons!.length >= 2){
-			console.log("More than two sons not permitted")
-			return 
-		}
+		console.log(fv)
 
 		this.cladeService.addClade(newClade).subscribe(_ => {
 			console.log("species added succesfully")
