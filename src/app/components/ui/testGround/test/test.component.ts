@@ -18,6 +18,7 @@ import { getCardinalCoordsFromPolarDegrees, getTrueCardinalPoint } from '../../.
 import { DrawingOptions } from '../../../../shared/models/DrawingOptions';
 import { BranchTip } from '../../../../shared/models/BranchTip';
 import { __core_private_testing_placeholder__ } from '@angular/core/testing';
+import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 
 @Component({
 	selector: 'pt-test',
@@ -39,8 +40,9 @@ export class TestComponent {
 	canvasCenter = new Vector2(0, 0)
 	center = new Vector2(0, 0)
 	mousePosition = new Vector2(0, 0)
-	debugMode = false 
+	debugMode = true
 	zoom = 1;
+	SCROLL_SENSITIVITY = 0.0035;
 
 	//Data
 	branches: Branch[] = []
@@ -59,8 +61,10 @@ export class TestComponent {
 	maxDivisions = 0
 	maxTreeRadius = 0
 	divisionStep = 0;
-	fontSize = 30
-	padding = this.divisionStep / 10
+	fontSize = 10
+	padding = 0
+	numberOfSpecies = 0
+	
 
 	//Collition data
 	CollidedBranchIndex = 0
@@ -99,21 +103,24 @@ export class TestComponent {
 		this.ngZone.runOutsideAngular(() => {
 			this.intervalId = setInterval(async () => {
 				if(this.context  !== undefined && this.allClades.length > 0){
-					this.tick();
+					this.tick()
 				}
 			}, (1000/this.fps));
 		})
 	}
 	
 	setUpTree(){
-		
+
+		this.allClades.filter(c => c.directSons.length == 0).forEach(tip => {
+			this.numberOfSpecies++
+		})
+		this.fontSize = Math.min(360/this.numberOfSpecies, 30)
+		this.padding = this.divisionStep / 10		
 		var textArea = this.getMaxTextWidth() + 10
 		this.maxDivisions = this.getMaxTier()
-
-		this.maxTreeRadius = this.canvas.nativeElement.height / 2 - 80 - textArea
+		this.maxTreeRadius = (this.canvas.nativeElement.height / 2) - 80 - textArea
 		this.divisionStep  = this.maxTreeRadius / (this.maxDivisions + 1)
 		this.generateBranches()
-
 
 		if(this.debugMode){
 			//Debug "branch"
@@ -138,7 +145,6 @@ export class TestComponent {
         this.allClades.forEach(clade => {
             maxTier = clade.tier > maxTier ? clade.tier : maxTier
         });
-
         return maxTier
     }
 
@@ -151,7 +157,6 @@ export class TestComponent {
 			var tipWidth = context.measureText(tip.name).width
 			maxWidth = tipWidth > maxWidth ? tipWidth : maxWidth
 		})
-
 		return maxWidth + this.padding
 	}
 
@@ -170,12 +175,12 @@ export class TestComponent {
 				const cladeAngle = cladePolarCoords.angle
 				const cladeChildren = member.directSons!.length
 
-				const cladeCardinalCoords = getCardinalCoordsFromPolarDegrees(cladeDistance, cladeAngle , new Vector2(0, 0))
-				const cladeNextDivisionCoord = getCardinalCoordsFromPolarDegrees(cladeDistance + this.divisionStep, cladeAngle, new Vector2(0, 0))
-				const branchTipCoords = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius, cladeAngle, new Vector2(0,0))
+				const cladeCardinalCoords = getCardinalCoordsFromPolarDegrees(cladeDistance, cladeAngle , new Vector2(0, 0), this.zoom)
+				const cladeNextDivisionCoord = getCardinalCoordsFromPolarDegrees(cladeDistance + this.divisionStep, cladeAngle, new Vector2(0, 0), this.zoom)
+				const branchTipCoords = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius, cladeAngle, new Vector2(0,0), this.zoom)
 				const isLastOnFamily = familyClades.length == index + 1
 
-				// branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
+				branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
 				// branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords))
 				if(!isLastOnFamily)
 					branchInstructions.push(new Line(member.name, cladeCardinalCoords, cladeNextDivisionCoord))
@@ -219,7 +224,7 @@ export class TestComponent {
 					branchInstructions.push(cladeTextDisplay)
 
 					var collisionLineLength = cladeTextDisplay.GetTextWidth(this.context)
-					const branchEndCollisionLonePoint = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius + collisionLineLength, cladeAngle , new Vector2(0,0))
+					const branchEndCollisionLonePoint = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius + collisionLineLength, cladeAngle , new Vector2(0,0), this.zoom)
 
 					var textCollisionBoxColor = this.debugMode ? "#FFC0CB50" : "#FFC0CB00"
 					if(this.debugMode){
@@ -299,8 +304,22 @@ export class TestComponent {
         this.isDragging = false;
     }
 
+	@HostListener('mousewheel', ['$event'])
+    adjuztZoom(e: WheelEvent) {
+        if (!this.isDragging) {
+            var delta = e.deltaY * this.SCROLL_SENSITIVITY
+            if (delta) {
+                this.zoom -= delta
+            }
+            // this.zoom = Math.min(this.zoom, this.MAX_ZOOM)
+            // this.zoom = Math.max(this.zoom, this.MIN_ZOOM)
+        }
+		console.log(this.zoom)
+
+    };
+
     @HostListener('mousedown', ['$event'])
-    onPointerDown(e: MouseEvent) {
+    onPointerDown() {
 
 		//Dragging logic
 		if(this.dragActivated){
@@ -330,8 +349,6 @@ export class TestComponent {
 			
 			this.center.x = this.canvasCenter.x + this.offset.x;
 			this.center.y = this.canvasCenter.y + this.offset.y;
-           
-            this.render()
         }
     }
 
@@ -391,7 +408,7 @@ export class TestComponent {
 		this.branches.forEach(branch => {			
 			branch.drawingInstructions.forEach(instruction => {
 				instruction.resetAnimation()
-				instruction.draw(this.context, this.center)
+				instruction.draw(this.context, this.center, this.zoom)
 			});	
 
 			if(branch.isActive){
@@ -406,7 +423,7 @@ export class TestComponent {
 		});
 
 		collitionedBranches.forEach(branch => {
-			branch.animateFrame(this.context, this.center, this.deltaTime)
+			branch.animateFrame(this.context, this.center, this.zoom, this.deltaTime)
 			branch.animationSteps = branch.animationSteps + (1/this.animationSpeed)
 		});
 		
@@ -416,7 +433,7 @@ export class TestComponent {
 		var didCollitionOnce = false;
 		this.branches.forEach((branch, index) => {
 			branch.drawingInstructions.filter(i => i.hasCollition).forEach(instruction => {
-				instruction.drawCollition(this.context, this.center)
+				instruction.drawCollition(this.context, this.center, this.zoom)
 				if(this.context.isPointInStroke(this.mousePosition.x, this.mousePosition.y) && branch.doesAnimate){
 					instruction.isCollitioningWithMouse = true
 					didCollitionOnce = true

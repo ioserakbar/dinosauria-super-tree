@@ -21,7 +21,7 @@ export class Branch{
     }
 
 
-    animateFrame(context: CanvasRenderingContext2D, center: Vector2, delta: number, initialIndex = 0){
+    animateFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, delta: number, initialIndex = 0){
         
         var instruction = this.drawingInstructions[initialIndex]
         var totalInstructions = this.drawingInstructions.filter(d => d.doesAnimate).length
@@ -35,10 +35,10 @@ export class Branch{
 
         //Smooth animation formula
         stepsForInstruction = 1 - Math.pow(1 - stepsForInstruction, 51)       
-        instruction.drawAnimationFrame(context, center, stepsForInstruction, initialIndex, totalInstructions,  () => {
+        instruction.drawAnimationFrame(context, center, zoom, stepsForInstruction, initialIndex, totalInstructions,  () => {
             var newIndex = initialIndex + 1
             
-            this.animateFrame(context, center, delta, newIndex)
+            this.animateFrame(context, center, zoom, delta, newIndex)
         })
     }
 
