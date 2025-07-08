@@ -40,9 +40,9 @@ export class TestComponent {
 	canvasCenter = new Vector2(0, 0)
 	center = new Vector2(0, 0)
 	mousePosition = new Vector2(0, 0)
-	debugMode = true
+	debugMode = false
 	zoom = 1;
-	SCROLL_SENSITIVITY = 0.0035;
+	SCROLL_SENSITIVITY = 0.002;
 
 	//Data
 	branches: Branch[] = []
@@ -180,8 +180,8 @@ export class TestComponent {
 				const branchTipCoords = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius, cladeAngle, new Vector2(0,0), this.zoom)
 				const isLastOnFamily = familyClades.length == index + 1
 
-				branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
-				// branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords))
+				//branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
+				//branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords))
 				if(!isLastOnFamily)
 					branchInstructions.push(new Line(member.name, cladeCardinalCoords, cladeNextDivisionCoord))
 

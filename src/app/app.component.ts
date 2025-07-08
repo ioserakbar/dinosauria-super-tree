@@ -4,7 +4,7 @@ import { MainComponent } from "./components/ui/main/main.component";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,  MainComponent],
+  imports: [MainComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

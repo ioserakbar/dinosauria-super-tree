@@ -57,47 +57,31 @@ export class AddCladeComponent implements OnInit {
 
 	changeDirectSons(selectedCladeId: string){
 		this.selectedParentClade = this.allClades.find(c => c.id == selectedCladeId)!
-	
-		console.log("antes", this.directSonsOpions)
+
 		var pDirectSonsOpions = []
 
-		//This means it has one son, so the options should be replae it OR be its sibling
-		if(this.selectedParentClade?.directSons.length == 1){
-
-			var sonClade = this.allClades.find(c => c.id == this.selectedParentClade?.directSons[0])!
-
+		this.selectedParentClade.directSons.forEach(son =>{
+			var sonClade = this.allClades.find(c => c.id == son)!
+			
 			pDirectSonsOpions.push({
 				name: "The new clade will be the new parent of " + sonClade.name,
 				id: sonClade.id + "-parent"
 			})
+		})
 
-			pDirectSonsOpions.push({
-				name: "The new clade will be a sibling of " + sonClade.name,
-				id: sonClade.id + "-sibling"
-			})
+		var sonClade = this.allClades.find(c => c.id == this.selectedParentClade?.directSons[0])!
 
-		}
-		else{
+		pDirectSonsOpions.push({
+			name: "The new clade will another son" ,
+			id: sonClade.id + "-sibling"
+		})
 
-			this.selectedParentClade.directSons.forEach(son =>{
-				var sonClade = this.allClades.find(c => c.id == son)!
-				
-				pDirectSonsOpions.push({
-					name: "The new clade will be the new parent of " + sonClade.name,
-					id: sonClade.id + "-parent"
-				})
-			})
-
-			pDirectSonsOpions.push({
-				name: "Both will be children of the new calde",
-				id: "0-both"
-			})
-
-		}
+		pDirectSonsOpions.push({
+			name: "Both will be children of the new calde",
+			id: "0-both"
+		})
 		
 		this.directSonsOpions = pDirectSonsOpions
-
-		console.log("despues", this.directSonsOpions)
 
 
 		if(this.selectedParentClade.directSons.length <= 0){
