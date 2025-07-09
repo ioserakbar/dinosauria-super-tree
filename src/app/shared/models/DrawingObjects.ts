@@ -32,6 +32,9 @@ export class DrawingObject {
         return this
     }
 
+    GetLength():number{ return 0 }
+
+    GetId():string{ return ""}
 
     draw(context: CanvasRenderingContext2D, center: Vector2, zoom: number, isColliding?: boolean){}
 
@@ -57,6 +60,14 @@ export class Dot extends DrawingObject {
         super(name);
         this.point = point;
         this.size = size;
+    }
+
+    override GetLength(): number {
+        return this.size * 2
+    }
+
+    override GetId(): string {
+        return this.point.x.toString() + this.point.y.toString() + this.size.toString()
     }
 
     override draw(context: CanvasRenderingContext2D, center: Vector2, zoom: number, isColliding = false) {
@@ -126,6 +137,14 @@ export class Arc extends DrawingObject {
         this.startAngle = startAngle;
         this.endAngle = endAngle;
         this.counterClockWise = counterClockWise;
+    }
+
+    override GetLength(): number {
+        return Math.abs(this.endAngle - this.startAngle) * this.radius
+    }
+
+    override GetId(): string {
+        return this.point.x.toString() + this.point.y.toString() + this.radius.toString() + this.startAngle.toString() + this.endAngle.toString() + this.counterClockWise.toString()
     }
 
     override draw(context: CanvasRenderingContext2D, center: Vector2, zoom: number, isColliding = false) {
@@ -199,6 +218,14 @@ export class Line extends DrawingObject {
         this.endPoint = endPoint;
     }
 
+    override GetLength(): number {
+        return Math.sqrt(Math.pow(this.endPoint.x - this.startPoint.x, 2) + Math.pow(this.endPoint.y - this.startPoint.y, 2))
+    }
+
+    override GetId(): string {
+        return this.startPoint.x.toString() + this.startPoint.y.toString() + this.endPoint.x.toString() + this.endPoint.y.toString()
+    }
+
     override draw(context: CanvasRenderingContext2D, center: Vector2, zoom: number, isColliding = false) {
         drawLine(context, center, zoom, this.startPoint, this.endPoint, this.options, isColliding);
     }
@@ -263,6 +290,10 @@ export class CanvasText extends DrawingObject{
     SetFontFamily(fontFamily: string): CanvasText{
         this.fontFamily = fontFamily
         return this
+    }
+
+    override GetId(): string {
+        return this.text + this.position.x.toString() + this.position.x.toString() + this.rotation.toString()
     }
 
     override draw(context: CanvasRenderingContext2D, center: Vector2, zoom: number) {

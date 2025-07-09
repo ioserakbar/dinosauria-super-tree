@@ -16,9 +16,8 @@ import { forkJoin, max } from 'rxjs';
 import { Clade } from '../../../../shared/models/Clade';
 import { getCardinalCoordsFromPolarDegrees, getTrueCardinalPoint } from '../../../../shared/functions/canvasTools';
 import { DrawingOptions } from '../../../../shared/models/DrawingOptions';
-import { BranchTip } from '../../../../shared/models/BranchTip';
 import { __core_private_testing_placeholder__ } from '@angular/core/testing';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
+import { INSPECT_MAX_BYTES } from 'buffer';
 
 @Component({
 	selector: 'pt-test',
@@ -42,11 +41,11 @@ export class TestComponent {
 	mousePosition = new Vector2(0, 0)
 	debugMode = false
 	zoom = 1;
-	SCROLL_SENSITIVITY = 0.002;
+	SCROLL_SENSITIVITY = 0.001;
 
 	//Data
+	displayTree: Branch = new Branch("Display tree", [])
 	branches: Branch[] = []
-	branchesTips: BranchTip[] = []
 	allClades: Clade[] = []
 
 	//Animation controls
@@ -55,7 +54,7 @@ export class TestComponent {
 	private intervalId: any;
 	deltaTime = 0
 	steps = 0
-	animationSpeed = 2;
+	animationDuration = 1;
 
 	//Tree data
 	maxDivisions = 0
@@ -92,8 +91,8 @@ export class TestComponent {
 			const $clades = this.cladeService.getAll()
 			forkJoin([$clades]).subscribe(results => {
 				this.allClades = results[0]
-				this.startRender()
 				this.setUpTree()
+				this.startRender()
 			})
 		}
 		
@@ -114,7 +113,7 @@ export class TestComponent {
 		this.allClades.filter(c => c.directSons.length == 0).forEach(tip => {
 			this.numberOfSpecies++
 		})
-		this.fontSize = Math.min(360/this.numberOfSpecies, 30)
+		this.fontSize = Math.min(360/this.numberOfSpecies, 20)
 		this.padding = this.divisionStep / 10		
 		var textArea = this.getMaxTextWidth() + 10
 		this.maxDivisions = this.getMaxTier()
@@ -182,8 +181,12 @@ export class TestComponent {
 
 				//branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
 				//branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords))
-				if(!isLastOnFamily)
-					branchInstructions.push(new Line(member.name, cladeCardinalCoords, cladeNextDivisionCoord))
+				if(!isLastOnFamily){
+					var line = new Line(member.name, cladeCardinalCoords, cladeNextDivisionCoord)
+					branchInstructions.push(line)			
+					this.AddInstructionToDisplayTree(line)
+				}
+							
 
 				if(cladeChildren > 1){
 
@@ -195,10 +198,18 @@ export class TestComponent {
 					const startAngle = cladeAngle * ( Math.PI / 180 )
 					const endAngle = nextMemberAngle * ( Math.PI / 180 )
 
-					branchInstructions.push(new Arc(member.name, new Vector2 (0, 0), nextMemberDistance, startAngle, endAngle, nextMemberArcOrientation))
+					let arc = new Arc(member.name, new Vector2 (0, 0), nextMemberDistance, startAngle, endAngle, nextMemberArcOrientation)
+					let arcLength = arc.GetLength();
+					if(arcLength > .00000000001){
+						branchInstructions.push(arc)
+						this.AddInstructionToDisplayTree(arc)
+					}
 				} 
 				else if(isLastOnFamily){
-					branchInstructions.push(new Line(member.name, cladeCardinalCoords, branchTipCoords))
+					
+					var lastLine = new Line(member.name, cladeCardinalCoords, branchTipCoords)
+					branchInstructions.push(lastLine)
+					this.AddInstructionToDisplayTree(lastLine)
 
 					var textAngle = cladeAngle
 					var textAlign:CanvasTextAlign = 'left'
@@ -222,13 +233,14 @@ export class TestComponent {
 						
 
 					branchInstructions.push(cladeTextDisplay)
+					this.AddInstructionToDisplayTree(cladeTextDisplay)
 
 					var collisionLineLength = cladeTextDisplay.GetTextWidth(this.context)
 					const branchEndCollisionLonePoint = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius + collisionLineLength, cladeAngle , new Vector2(0,0), this.zoom)
 
 					var textCollisionBoxColor = this.debugMode ? "#FFC0CB50" : "#FFC0CB00"
 					if(this.debugMode){
-						branchInstructions.push(
+						this.AddInstructionToDisplayTree(
 							new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
 							.SetOptions(new DrawingOptions()
 								.SetColor("red")
@@ -238,25 +250,33 @@ export class TestComponent {
 						)
 					}
 
-					branchInstructions.push(
-							new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
-							.SetOptions(new DrawingOptions()
-								.SetColor(textCollisionBoxColor)
-								.SetLineWidth(cladeTextDisplay.fontSize)
-								.SetLineCap('square')
-							)
-							.ActivateCollition()
+					var textCollition = new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
+						.SetOptions(new DrawingOptions()
+							.SetColor(textCollisionBoxColor)
+							.SetLineWidth(cladeTextDisplay.fontSize)
+							.SetLineCap('square')
 						)
-					
-					// this.branchesTips.push(
-					// 	new BranchTip(member.name, branchTipCoords, getTrueCardinalPoint(branchTipCoords, this.center), cladeAngle, "", "white")
-					// )
+						.ActivateCollition()
+					branchInstructions.push(textCollition)
+					this.AddInstructionToDisplayTree(textCollition)
 				}
 			})
 			this.branches.push(new Branch(clade.name, branchInstructions))
 		});
+	}
 
+	AddInstructionToDisplayTree(pInstruction: DrawingObject){
 
+		var isInstructionRepeated = false
+
+		this.displayTree.drawingInstructions.forEach( instruction => {
+			if(pInstruction.GetId() == instruction.GetId()){
+				isInstructionRepeated = true
+			}
+		})
+
+		if(!isInstructionRepeated)
+			this.displayTree.drawingInstructions.push(pInstruction)
 	}
 
 	getRandomColor() {
@@ -312,9 +332,8 @@ export class TestComponent {
                 this.zoom -= delta
             }
             // this.zoom = Math.min(this.zoom, this.MAX_ZOOM)
-            // this.zoom = Math.max(this.zoom, this.MIN_ZOOM)
+            this.zoom = Math.max(this.zoom, .1)
         }
-		console.log(this.zoom)
 
     };
 
@@ -404,11 +423,15 @@ export class TestComponent {
 		this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
 		var collitionedBranches: Branch[] = []
 
+		this.displayTree.drawingInstructions.forEach(instruction => {
+			instruction.draw(this.context, this.center, this.zoom)
+		});
+
 		//Render all Branches
 		this.branches.forEach(branch => {			
 			branch.drawingInstructions.forEach(instruction => {
 				instruction.resetAnimation()
-				instruction.draw(this.context, this.center, this.zoom)
+				//instruction.draw(this.context, this.center, this.zoom)
 			});	
 
 			if(branch.isActive){
@@ -418,13 +441,14 @@ export class TestComponent {
 				branch.drawingInstructions.forEach(instruction => {
 					instruction.resetAnimation()
 				});	
-				branch.animationSteps = 1;
+				branch.animationSteps = 0;
 			}
 		});
 
 		collitionedBranches.forEach(branch => {
-			branch.animateFrame(this.context, this.center, this.zoom, this.deltaTime)
-			branch.animationSteps = branch.animationSteps + (1/this.animationSpeed)
+			branch.animateFrame(this.context, this.center, this.zoom)
+			branch.UpdateDeltaSteps(this.deltaTime)
+			branch.animationSteps = branch.animationSteps + this.animationDuration
 		});
 		
 	}
