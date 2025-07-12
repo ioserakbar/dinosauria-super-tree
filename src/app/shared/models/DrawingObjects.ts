@@ -12,7 +12,7 @@ export class DrawingObject {
     finishedAnimating = false
     isCollitioningWithMouse?: boolean = false
     doesAnimate = true
-
+    type = ""
     constructor(name: string) {
         this.name = name;
     }
@@ -40,7 +40,9 @@ export class DrawingObject {
 
     drawCollition(context: CanvasRenderingContext2D, center: Vector2, zoom: number) {}
 
-    drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, step: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction, isFinished = false){}
+    olddrawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, step: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction, isFinished = false){}
+
+    drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, step: number, onAnimationFinished?:CallableFunction, isFinished = false){}
 
     resetAnimation(){
         this.initialDeltaTime = 0
@@ -51,6 +53,7 @@ export class DrawingObject {
 export class Dot extends DrawingObject {
     point!: Vector2;
     size!: number;
+    override type = "Dot"
 
     constructor(
         name: string,
@@ -93,7 +96,7 @@ export class Dot extends DrawingObject {
         );
     }
 
-    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction){  
+    override olddrawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction){  
         steps = Math.min((steps * totalInstructions) - position, 1)
 
         if(!this.finishedAnimating){   
@@ -114,6 +117,10 @@ export class Dot extends DrawingObject {
             onAnimationFinished()
         } 
     }
+
+    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, onAnimationFinished?:CallableFunction){  
+        
+    }
 }
 
 export class Arc extends DrawingObject {
@@ -122,6 +129,7 @@ export class Arc extends DrawingObject {
     startAngle!: number;
     endAngle!: number;
     counterClockWise!: boolean;
+    override type = "Arc"
 
     constructor(
         name: string,
@@ -176,7 +184,7 @@ export class Arc extends DrawingObject {
         );
     }
 
-    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction){  
+    override olddrawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction){  
         steps = Math.min((steps * totalInstructions) - position, 1)
         if(!this.finishedAnimating){
             this.finishedAnimating = drawAnimatedArcFrame(
@@ -199,13 +207,34 @@ export class Arc extends DrawingObject {
             onAnimationFinished()
         } 
     }
+
+    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, onAnimationFinished?:CallableFunction){  
+        
+        this.finishedAnimating = drawAnimatedArcFrame(
+            context,
+            center,
+            zoom,
+            steps,
+            this.point,
+            this.radius,
+            this.startAngle,
+            this.endAngle,
+            this.counterClockWise,
+            this.options
+        )
+        
+
+        if(this.finishedAnimating && onAnimationFinished){
+            onAnimationFinished()
+        } 
+    }
 }
 
 export class Line extends DrawingObject {
 
     startPoint!: Vector2;
     endPoint!: Vector2;
-
+    override type = "Line"
     collitionwidth?: number = 3
 
     constructor(
@@ -234,7 +263,7 @@ export class Line extends DrawingObject {
         drawLine(context, center, zoom, this.startPoint, this.endPoint, this.options);
     }
 
-    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction){  
+    override olddrawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, position:number, totalInstructions: number, onAnimationFinished?:CallableFunction){  
 
         steps = Math.min((steps * totalInstructions) - position, 1) 
         if(!this.finishedAnimating){
@@ -246,6 +275,12 @@ export class Line extends DrawingObject {
         if(this.finishedAnimating && onAnimationFinished){
             onAnimationFinished()
         } 
+    }
+
+    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, steps: number, onAnimationFinished?:CallableFunction){  
+
+        this.finishedAnimating = drawAnimatedLineFrame(context, center, zoom, steps, this.startPoint, this.endPoint, this.options)
+    
     }
 }
 
@@ -259,12 +294,13 @@ export class CanvasText extends DrawingObject{
     padding = 10
     baseline:CanvasTextBaseline = "top"
     fontFamily = "Arial"
+
+    override type="Text"
     
     constructor(name:string, text: string, position: Vector2) {
         super(name)
         this.text = text
         this.position = position
-        this.doesAnimate = false
     }
 
     SetRotation(rotation: number): CanvasText{
@@ -311,6 +347,11 @@ export class CanvasText extends DrawingObject{
             this.fontFamily,
             this.options
         );
+    }
+    
+    override drawAnimationFrame(context: CanvasRenderingContext2D, center: Vector2, zoom: number, step: number, onAnimationFinished?: CallableFunction, isFinished?: boolean): void {
+        this.draw(context, center, zoom)
+        this.finishedAnimating = true
     }
 
     GetTextWidth(context: CanvasRenderingContext2D,) : number{

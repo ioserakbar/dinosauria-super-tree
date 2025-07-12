@@ -51,10 +51,13 @@ export class TestComponent {
 	//Animation controls
 	fps = 60;
 	lastUpdate = Date.now()
-	private intervalId: any;
+	private intervalId: any
+	private introIntervalId: any
 	deltaTime = 0
 	steps = 0
-	animationDuration = 1;
+	animationDuration = 1
+	introDuration = 10
+	isIntroPlaying = false
 
 	//Tree data
 	maxDivisions = 0
@@ -78,6 +81,10 @@ export class TestComponent {
 	ngOnDestroy() {
 		if (this.intervalId) {
 			clearInterval(this.intervalId);
+		}
+
+		if(this.introIntervalId){
+			clearInterval(this.introIntervalId)
 		}
 	}
 
@@ -106,6 +113,11 @@ export class TestComponent {
 				}
 			}, (1000/this.fps));
 		})
+
+		this.SetBranchesForIntroAnimation()
+		this.introIntervalId = setTimeout(() => {
+			this.ResetranchesForAnimationDuration()
+		}, (this.introDuration*1000))
 	}
 	
 	setUpTree(){
@@ -231,7 +243,6 @@ export class TestComponent {
 						.SetTextAlign(textAlign)
 						.SetPadding(padding)
 						
-
 					branchInstructions.push(cladeTextDisplay)
 					this.AddInstructionToDisplayTree(cladeTextDisplay)
 
@@ -257,6 +268,7 @@ export class TestComponent {
 							.SetLineCap('square')
 						)
 						.ActivateCollition()
+						.SetDoesAnimate(false)
 					branchInstructions.push(textCollition)
 					this.AddInstructionToDisplayTree(textCollition)
 				}
@@ -348,12 +360,16 @@ export class TestComponent {
 		}
 
 		//Click logic
-		if(this.isMouseColliding){
-			var activeBranch = this.branches[this.CollidedBranchIndex]
-			this.activateBranch(activeBranch)
-		}else{
-			this.resetSelections()
-		}
+
+		if(!this.isIntroPlaying){
+			if(this.isMouseColliding){
+				var activeBranch = this.branches[this.CollidedBranchIndex]
+				this.activateBranch(activeBranch)
+			}else{
+				this.resetSelections()
+			}
+		}	
+	
     }
 
     @HostListener('mousemove', ['$event'])
@@ -381,6 +397,37 @@ export class TestComponent {
 		this.dragActivated = false
 	}
 
+	@HostListener('document:keyup.p', ['$event']) 
+	AllAtOnce(){
+		this.branches.forEach(branch => {
+			branch.isActive = true
+		});
+	}
+
+	SetBranchesForIntroAnimation(){
+		this.branches.forEach(branch => {
+			branch.animationDuration = this.introDuration
+			branch.drawingInstructions.forEach(instruction => {
+				instruction.options.SetActiveColor('black')
+			});
+			branch.isActive = true
+		});
+		this.isIntroPlaying = true
+	}
+
+	ResetranchesForAnimationDuration(){
+		this.branches.forEach(branch => {
+			branch.animationDuration = this.animationDuration
+			branch.drawingInstructions.forEach(instruction => {
+				instruction.options.SetActiveColor('red')
+			});
+			
+			branch.isActive = false
+		});
+		this.isIntroPlaying = false
+	}
+
+
 	activateBranch(branch: Branch) {
 		var activeBranch = this.branches.find(f => f.isActive)
 		if(activeBranch){
@@ -390,10 +437,12 @@ export class TestComponent {
 	}
 
 	resetSelections(){
-		var activeBranch = this.branches.find(f => f.isActive)
-		if(activeBranch && !this.dragActivated){
-			activeBranch.isActive = false
-		}
+		var activeBranches = this.branches.filter(f => f.isActive)
+		activeBranches.forEach(branch => {
+			if(!this.dragActivated){
+				branch.isActive = false
+			}
+		});
 	}
 
 	//#endregion
@@ -423,58 +472,59 @@ export class TestComponent {
 		this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
 		var collitionedBranches: Branch[] = []
 
-		this.displayTree.drawingInstructions.forEach(instruction => {
-			instruction.draw(this.context, this.center, this.zoom)
-		});
+
+		if(!this.isIntroPlaying){
+			this.displayTree.drawingInstructions.forEach(instruction => {
+				instruction.draw(this.context, this.center, this.zoom)
+			});
+		}
+		
 
 		//Render all Branches
 		this.branches.forEach(branch => {			
-			branch.drawingInstructions.forEach(instruction => {
-				instruction.resetAnimation()
-				//instruction.draw(this.context, this.center, this.zoom)
-			});	
-
 			if(branch.isActive){
 				collitionedBranches.push(branch)
 			}else{
-				branch.resetAnimation();
 				branch.drawingInstructions.forEach(instruction => {
 					instruction.resetAnimation()
 				});	
-				branch.animationSteps = 0;
+				branch.resetAnimation()
 			}
 		});
 
 		collitionedBranches.forEach(branch => {
 			branch.animateFrame(this.context, this.center, this.zoom)
-			branch.UpdateDeltaSteps(this.deltaTime)
-			branch.animationSteps = branch.animationSteps + this.animationDuration
+			branch.UpdateDelta(this.deltaTime)
 		});
 		
 	}
 
 	checkCollision(){
-		var didCollitionOnce = false;
-		this.branches.forEach((branch, index) => {
-			branch.drawingInstructions.filter(i => i.hasCollition).forEach(instruction => {
-				instruction.drawCollition(this.context, this.center, this.zoom)
-				if(this.context.isPointInStroke(this.mousePosition.x, this.mousePosition.y) && branch.doesAnimate){
-					instruction.isCollitioningWithMouse = true
-					didCollitionOnce = true
-					this.CollidedBranchIndex = index
-				}else{
-					instruction.isCollitioningWithMouse = false
-				}
-			})
-		});
 
-		if(didCollitionOnce){
-			this.setCursorToPointer()
-		}else{
-			this.setCursorToDefault()
+		if(!this.isIntroPlaying){
+			var didCollitionOnce = false;
+			this.branches.forEach((branch, index) => {
+				branch.drawingInstructions.filter(i => i.hasCollition).forEach(instruction => {
+					instruction.drawCollition(this.context, this.center, this.zoom)
+					if(this.context.isPointInStroke(this.mousePosition.x, this.mousePosition.y) && branch.doesAnimate){
+						instruction.isCollitioningWithMouse = true
+						didCollitionOnce = true
+						this.CollidedBranchIndex = index
+					}else{
+						instruction.isCollitioningWithMouse = false
+					}
+				})
+			});
+
+			if(didCollitionOnce){
+				this.setCursorToPointer()
+			}else{
+				this.setCursorToDefault()
+			}
+
+			this.isMouseColliding = didCollitionOnce
 		}
-
-		this.isMouseColliding = didCollitionOnce
+		
 	}
 
 	setCursorToPointer(){

@@ -148,7 +148,6 @@ export function drawAnimatedLineFrame(
 	options: DrawingOptions
 ) {
 	if(step >= 1){
-
 		drawLine(ctx, center, zoom, p1, p2, options, true)
 		return true
 
