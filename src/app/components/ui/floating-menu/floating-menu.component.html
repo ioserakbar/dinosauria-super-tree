@@ -1,0 +1,93 @@
+<style>
+    .floating-menu{
+        position: absolute;
+        font-family: monospace;
+        margin: 40px;
+        padding: 10px;
+        border-radius: 10px;
+        top: 0;
+        left: 0;
+        background: rgba(0, 0, 0, 0.404);
+        transition: .3s;
+    }
+
+    .floating-menu.opened{
+        min-width: 450px;
+    }
+
+
+    .header{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        
+    }
+
+    .header .title{
+        justify-self: flex-end;
+        margin: auto;
+        margin-bottom: 20px;
+    }
+
+    button, 
+    button:focus{
+        background: none;
+        border: none;
+        color: white;
+        font-size: 32px;
+    }
+
+    .option-item{
+        display: flex;
+        align-items: center;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 3px 10px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0);
+    }
+
+    .option-item fa-icon{
+        font-size: 150% !important;
+        width: 30px;
+    }
+
+    .option-item:hover{
+        border-bottom: 2px solid white;
+    }
+
+    .menu-options span{
+        margin-left: 18px;
+    }
+
+
+</style>
+<div class="floating-menu opened" id="options-menu">
+    <div class="header">
+        <button (click)="toggleMenu()"> 
+            <fa-icon [icon]="faBars" size="1x" *ngIf="!this.isMenuOpened"></fa-icon>
+            <fa-icon [icon]="faX" size="1x" *ngIf="this.isMenuOpened" ></fa-icon>
+        </button>
+        <div class="title" *ngIf="this.isMenuOpened"><h2>Options</h2></div>
+    </div>
+    <div class="menu-container d-flex">
+        <div class="menu-options m-auto" *ngIf="this.isMenuOpened">
+            <div class="option-item">
+                <fa-icon [icon]="faStar" size="1x"></fa-icon>
+                <span>Play Intro Animation</span>
+            </div>
+            <div class="option-item">
+                <fa-icon [icon]="faHexagonNodes" size="1x"></fa-icon>
+                <span>Show Clade Names</span>
+            </div>
+            <div class="option-item">
+                <fa-icon [icon]="faBug" size="1x"></fa-icon>
+                <span>Enable Degub In Canvas</span>
+            </div>
+            <div class="option-item">
+                <fa-icon [icon]="faPlay" size="1x"></fa-icon>
+                <span>Disable Animations</span>
+            </div>
+        </div>
+    </div>
+</div>
+ 

@@ -1,431 +1,548 @@
-import { Component, HostListener, ViewChild, Inject, PLATFORM_ID, ElementRef } from '@angular/core'
-import { isPlatformBrowser } from '@angular/common'
-import { Tree } from '../../../shared/models/Tree'
-import { CladeService } from '../../../services/clade/clade.service'
-import { SpeciesService } from '../../../services/species/species.service'
-import { Clade } from '../../../shared/models/Clade'
-import { Species } from '../../../shared/models/Species'
-import { forkJoin } from 'rxjs'
+import { isPlatformBrowser } from '@angular/common';
+import {
+	Component,
+	ElementRef,
+	HostListener,
+	Inject,
+	NgZone,
+	PLATFORM_ID,
+	ViewChild
+} from '@angular/core';
+import { Vector2 } from '../../../shared/models/Vector2';
+import { Branch } from '../../../shared/models/Branch';
+import { DrawingObject, Arc, Line, Dot, CanvasText } from '../../../shared/models/DrawingObjects';
+import { CladeService } from '../../../services/clade/clade.service';
+import { forkJoin } from 'rxjs';
+import { Clade } from '../../../shared/models/Clade';
+import { getCardinalCoordsFromPolarDegrees } from '../../../shared/functions/canvasTools';
+import { DrawingOptions } from '../../../shared/models/DrawingOptions';
+import { FloatingMenuComponent } from '../../ui/floating-menu/floating-menu.component';
+
 @Component({
-    selector: 'pt-round-cladogram',
-    imports: [],
-    templateUrl: './round-cladogram.component.html',
-    styleUrl: './round-cladogram.component.css'
+	selector: 'pt-round-cladogram',
+	imports: [FloatingMenuComponent],
+	templateUrl: './round-cladogram.component.html',
 })
-export class RoundCladogram {
-    @ViewChild('canvas') canvas!: ElementRef<HTMLCanvasElement>
+export class RoundCladogramComponent {
 
-    //canvas variables
-    center = { x: 0, y: 0 };
-    offset = { x: 0, y: 0 };
-    currentCenter = { x: 0, y: 0 }
-    context?: CanvasRenderingContext2D | null;
-    zoom = 1;
-    lineWidth = this.zoom * 4;
+	//Html elements
+	@ViewChild('canvas') canvas!: ElementRef<HTMLCanvasElement>
+	context!: CanvasRenderingContext2D
 
-    //tree variables
-    treeRadius = 400;
-    treeRadiusSteps = 100;
-    maxCladeDivisions = 4;
-    tree?: Tree;
+	//Controls
+	isDragging = false
+	dragActivated = false
+	dragStart = new Vector2(0, 0)
+	offset = new Vector2(0, 0)
+	canvasCenter = new Vector2(0, 0)
+	center = new Vector2(0, 0)
+	mousePosition = new Vector2(0, 0)
+	debugMode = false
+	zoom = 1;
+	SCROLL_SENSITIVITY = 0.001;
 
-    //data variables
-    allClades: Clade[] = []
-    dummySpecies: Species[] = []
+	//Data
+	displayTree: Branch = new Branch("Display tree", [])
+	branches: Branch[] = []
+	allClades: Clade[] = []
 
-    //Controls variables
-    isDragging = false;
-    SCROLL_SENSITIVITY = 0.0035;
-    MAX_ZOOM = 10;
-    MIN_ZOOM = 0.1;
-    dragStart = { x: 0, y: 0 }
+	//Animation controls
+	fps = 60;
+	lastUpdate = Date.now()
+	private intervalId: any
+	private introIntervalId: any
+	deltaTime = 0
+	steps = 0
+	animationDuration = 1
+	introDuration = 10
+	isIntroPlaying = false
 
-    constructor(
-        @Inject(PLATFORM_ID) private platformId: Object, 
-        private cladeService: CladeService,
-        private speciesService: SpeciesService
-    ) { 
+	//Tree data
+	maxDivisions = 0
+	maxTreeRadius = 0
+	divisionStep = 0;
+	fontSize = 10
+	padding = 0
+	numberOfSpecies = 0
+	
 
-        const $species = this.speciesService.getAll()
-        const $clades = this.cladeService.getAll()
-        
-        forkJoin([$species, $clades]).subscribe(results => {
-            this.dummySpecies = results[0]
-            this.allClades = results[1]
-            this.tree = new Tree(this.allClades)
-            this.treeRadius = (this.getMaxTier() + 1) * this.treeRadiusSteps
-            this.draw()
-        })
-        
+	//Collition data
+	CollidedBranchIndex = 0
+	isMouseColliding = false
+
+	constructor(
+		@Inject(PLATFORM_ID) private platformId: Object, 
+		private ngZone: NgZone, 
+		private cladeService: CladeService,
+	) {}
+
+	ngOnDestroy() {
+		if (this.intervalId) {
+			clearInterval(this.intervalId);
+		}
+
+		if(this.introIntervalId){
+			clearInterval(this.introIntervalId)
+		}
+	}
+
+	ngAfterViewInit() { 
+		if (isPlatformBrowser(this.platformId)) {
+			this.context = this.canvas.nativeElement.getContext('2d')!;
+			this.resizeCanvas();
+			this.deltaTime = 1  / this.fps
+			this.render()
+
+			const $clades = this.cladeService.getAll()
+			forkJoin([$clades]).subscribe(results => {
+				this.allClades = results[0]
+				this.setUpTree()
+				this.startRender()
+			})
+		}
+		
+	}	
+
+	startRender(){
+		this.ngZone.runOutsideAngular(() => {
+			this.intervalId = setInterval(async () => {
+				if(this.context  !== undefined && this.allClades.length > 0){
+					this.tick()
+				}
+			}, (1000/this.fps));
+		})
+
+		this.SetBranchesForIntroAnimation()
+		this.introIntervalId = setTimeout(() => {
+			this.ResetranchesForAnimationDuration()
+		}, (this.introDuration*1000))
+	}
+	
+	setUpTree(){
+
+		this.allClades.filter(c => c.directSons.length == 0).forEach(tip => {
+			this.numberOfSpecies++
+		})
+		this.fontSize = Math.min(360/this.numberOfSpecies, 20)
+		this.padding = this.divisionStep / 10		
+		var textArea = this.getMaxTextWidth() + 10
+		this.maxDivisions = this.getMaxTier()
+		this.maxTreeRadius = (this.canvas.nativeElement.height / 2) - 80 - textArea
+		this.divisionStep  = this.maxTreeRadius / (this.maxDivisions + 1)
+		this.generateBranches()
+
+		if(this.debugMode){
+			//Debug "branch"
+			var instructions : DrawingObject[] = [
+				new Arc("Max Width Circle", new Vector2(0, 0), this.maxTreeRadius, 0, 2 * Math.PI, false).SetOptions(new DrawingOptions().SetColor("blue").SetDashedStyle([10, 10])),
+				new Arc("Max Width Circle With Text Area", new Vector2(0, 0), this.maxTreeRadius + textArea , 0, 2 * Math.PI, false).SetOptions(new DrawingOptions().SetColor("blue")),
+				new Dot("Center", new Vector2(0, 0), 10).SetOptions(new DrawingOptions().SetColor("red"))
+			]
+
+			for (let i = 0; i < this.maxDivisions + 1; i++) {
+				instructions.push(new Arc("Max Width Circle", new Vector2(0, 0), this.divisionStep * i, 0, 2 * Math.PI, false).SetOptions(new DrawingOptions().SetColor("rgba(255, 0, 0, 0.27)").SetDashedStyle([10, 10])))		
+			}
+
+			this.branches.push(
+				new Branch("Debug branch", instructions).SetDoesAnimate(false)
+			)
+		}
+	}
+
+	getMaxTier(){
+        var maxTier = 0;
+        this.allClades.forEach(clade => {
+            maxTier = clade.tier > maxTier ? clade.tier : maxTier
+        });
+        return maxTier
     }
 
-    ngAfterViewInit() {
-        if (isPlatformBrowser(this.platformId)) {
-            this.context = this.canvas.nativeElement.getContext("2d")
-            this.resizeCanvas()
-        }
+	getMaxTextWidth(){
+		var maxWidth = 0
+		var canvas = document.createElement("canvas")
+		var context = canvas.getContext("2d")!
+		context.font = this.fontSize + "px Arial"
+		this.allClades.filter(c => c.directSons.length == 0).forEach(tip => {
+			var tipWidth = context.measureText(tip.name).width
+			maxWidth = tipWidth > maxWidth ? tipWidth : maxWidth
+		})
+		return maxWidth + this.padding
+	}
+
+	generateBranches(){
+		var allClades = this.allClades
+		var branchesTips = allClades.filter(c => c.directSons.length == 0 )
+		branchesTips.forEach(clade => {
+
+			var branchInstructions: DrawingObject[] = []
+			var familyClades = this.getCladeFamily(clade)
+
+			familyClades.forEach((member: Clade, index) => {
+
+				const cladePolarCoords = member.drawHelper!.coords
+				const cladeDistance = cladePolarCoords.distance / 100 * this.divisionStep
+				const cladeAngle = cladePolarCoords.angle
+				const cladeChildren = member.directSons!.length
+
+				const cladeCardinalCoords = getCardinalCoordsFromPolarDegrees(cladeDistance, cladeAngle , new Vector2(0, 0), this.zoom)
+				const cladeNextDivisionCoord = getCardinalCoordsFromPolarDegrees(cladeDistance + this.divisionStep, cladeAngle, new Vector2(0, 0), this.zoom)
+				const branchTipCoords = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius, cladeAngle, new Vector2(0,0), this.zoom)
+				const isLastOnFamily = familyClades.length == index + 1
+
+				//branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
+				//branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords))
+				if(!isLastOnFamily){
+					var line = new Line(member.name, cladeCardinalCoords, cladeNextDivisionCoord)
+					branchInstructions.push(line)			
+					this.AddInstructionToDisplayTree(line)
+				}
+							
+
+				if(cladeChildren > 1){
+
+					const nextMember = familyClades[index + 1]
+					const nextMemberPolarCoords = nextMember.drawHelper!.coords
+					const nextMemberDistance = nextMemberPolarCoords.distance / 100 * this.divisionStep
+					const nextMemberAngle = nextMemberPolarCoords.angle
+					const nextMemberArcOrientation = nextMember.drawHelper!.arcOrientation
+					const startAngle = cladeAngle * ( Math.PI / 180 )
+					const endAngle = nextMemberAngle * ( Math.PI / 180 )
+
+					let arc = new Arc(member.name, new Vector2 (0, 0), nextMemberDistance, startAngle, endAngle, nextMemberArcOrientation)
+					let arcLength = arc.GetLength();
+					if(arcLength > .00000000001){
+						branchInstructions.push(arc)
+						this.AddInstructionToDisplayTree(arc)
+					}
+				} 
+				else if(isLastOnFamily){
+					
+					var lastLine = new Line(member.name, cladeCardinalCoords, branchTipCoords)
+					branchInstructions.push(lastLine)
+					this.AddInstructionToDisplayTree(lastLine)
+
+					var textAngle = cladeAngle
+					var textAlign:CanvasTextAlign = 'left'
+					var padding = this.divisionStep / 10
+
+					if(textAngle < 90 || textAngle >= 270 ){
+						textAlign = "left"
+
+					}
+					else if(textAngle >= 90 && textAngle < 270) {
+						textAlign = "right"
+						textAngle = textAngle + 180
+						padding = padding * -1
+					}
+
+					var cladeTextDisplay = new CanvasText(member.name, member.name, branchTipCoords)
+						.SetFontSize(this.fontSize)
+						.SetRotation(-textAngle)
+						.SetTextAlign(textAlign)
+						.SetPadding(padding)
+						
+					branchInstructions.push(cladeTextDisplay)
+					this.AddInstructionToDisplayTree(cladeTextDisplay)
+
+					var collisionLineLength = cladeTextDisplay.GetTextWidth(this.context)
+					const branchEndCollisionLonePoint = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius + collisionLineLength, cladeAngle , new Vector2(0,0), this.zoom)
+
+					var textCollisionBoxColor = this.debugMode ? "#FFC0CB50" : "#FFC0CB00"
+					if(this.debugMode){
+						this.AddInstructionToDisplayTree(
+							new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
+							.SetOptions(new DrawingOptions()
+								.SetColor("red")
+								.SetLineWidth(1)
+								.SetLineCap('square')
+							)
+						)
+					}
+
+					var textCollition = new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
+						.SetOptions(new DrawingOptions()
+							.SetColor(textCollisionBoxColor)
+							.SetLineWidth(cladeTextDisplay.fontSize)
+							.SetLineCap('square')
+						)
+						.ActivateCollition()
+						.SetDoesAnimate(false)
+					branchInstructions.push(textCollition)
+					this.AddInstructionToDisplayTree(textCollition)
+				}
+			})
+			this.branches.push(new Branch(clade.name, branchInstructions))
+		});
+	}
+
+	AddInstructionToDisplayTree(pInstruction: DrawingObject){
+
+		var isInstructionRepeated = false
+
+		this.displayTree.drawingInstructions.forEach( instruction => {
+			if(pInstruction.GetId() == instruction.GetId()){
+				isInstructionRepeated = true
+			}
+		})
+
+		if(!isInstructionRepeated)
+			this.displayTree.drawingInstructions.push(pInstruction)
+	}
+
+	getRandomColor() {
+		var letters = '0123456789ABCDEF';
+		var color = '#';
+		for (var i = 0; i < 6; i++) {
+			color += letters[Math.floor(Math.random() * 16)];
+		}
+		return color;
+	}
+
+	getCladeFamily(clade: Clade){
+		
+		var family = new Array();
+		var currentCladeId = clade.id!
+		var searchFinished = false;
+		
+		do{
+			var currentClade = this.allClades.find(x=>x.id == currentCladeId);
+			if(currentCladeId == currentClade?.parentClade) {
+				console.error('Clade has self reference parent', currentClade)
+				searchFinished = true;
+			}
+			if(currentClade!.isFirst){
+				family.push(currentClade);
+				searchFinished = true;
+			} else {
+				family.push(currentClade);
+				currentCladeId = currentClade!.parentClade;
+			}
+		}while(!searchFinished)
+
+		return family.reverse();
+	}
+	
+	//#region Host Listeners
+
+	@HostListener('window:resize', ['$event'])
+	onResize() {
+		this.resizeCanvas();
+	}
+
+	@HostListener('mouseup', ['$event'])
+    onPointerUp() {
+        this.isDragging = false;
     }
 
-    // #region controls and listeners
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.resizeCanvas();
-    }
-
-    @HostListener('mousewheel', ['$event'])
+	@HostListener('mousewheel', ['$event'])
     adjuztZoom(e: WheelEvent) {
         if (!this.isDragging) {
             var delta = e.deltaY * this.SCROLL_SENSITIVITY
             if (delta) {
                 this.zoom -= delta
             }
-
-            this.zoom = Math.min(this.zoom, this.MAX_ZOOM)
-            this.zoom = Math.max(this.zoom, this.MIN_ZOOM)
-            this.lineWidth = this.zoom * 4
-            this.draw()
+            // this.zoom = Math.min(this.zoom, this.MAX_ZOOM)
+            this.zoom = Math.max(this.zoom, .1)
         }
 
     };
 
-    @HostListener('mouseup', ['$event'])
-    onPointerUp(e: MouseEvent) {
-        console.log("------------------------------------")
-		console.log("Center", this.center)
-		console.log("Offset", this.offset)
-		console.log("DragStart", this.offset)
-		console.log("Mouse Position", this.getEventLocation(e))
-		console.log("//////////////////////////////////////////////////////////////////////////")
-        this.isDragging = false;
-    }
-
     @HostListener('mousedown', ['$event'])
-    onPointerDown(e: MouseEvent) {
-        console.log("Center", this.center)
-		console.log("Offset", this.offset)
-		console.log("DragStart", this.offset)
-		console.log("Mouse Position", this.getEventLocation(e))
-        this.isDragging = true;
-        this.dragStart.x = this.getEventLocation(e).x - this.offset.x
-        this.dragStart.y = this.getEventLocation(e).y - this.offset.y
+    onPointerDown() {
+
+		//Dragging logic
+		if(this.dragActivated){
+			this.isDragging = true;
+			this.dragStart.x = this.mousePosition.x - this.offset.x
+			this.dragStart.y = this.mousePosition.y - this.offset.y
+		}
+
+		//Click logic
+
+		if(!this.isIntroPlaying){
+			if(this.isMouseColliding){
+				var activeBranch = this.branches[this.CollidedBranchIndex]
+				this.activateBranch(activeBranch)
+			}else{
+				this.resetSelections()
+			}
+		}	
+	
     }
 
     @HostListener('mousemove', ['$event'])
     onPointerMove(e: MouseEvent) {
-        
+		
+		this.mousePosition.x = e.clientX
+		this.mousePosition.y = e.clientY
+
         if (this.isDragging) {
-            this.offset.x = this.getEventLocation(e).x - this.dragStart.x
-            this.offset.y = this.getEventLocation(e).y - this.dragStart.y
-
-            this.currentCenter.x = this.center.x + this.offset.x;
-            this.currentCenter.y = this.center.y + this.offset.y;
-            this.draw()
+            this.offset.x = this.mousePosition.x - this.dragStart.x
+            this.offset.y = this.mousePosition.y - this.dragStart.y
+			
+			this.center.x = this.canvasCenter.x + this.offset.x;
+			this.center.y = this.canvasCenter.y + this.offset.y;
         }
     }
 
-    getEventLocation(e: MouseEvent) {
-        return { x: e.clientX, y: e.clientY }
+	@HostListener('document:keydown.space', ['$event']) 
+	onKeydownHandler() {
+		this.dragActivated = true
+	}
+
+	@HostListener('document:keyup.space', ['$event']) 
+	onKeyupHandler() {
+		this.dragActivated = false
+	}
+
+	@HostListener('document:keyup.p', ['$event']) 
+	AllAtOnce(){
+		this.branches.forEach(branch => {
+			branch.isActive = true
+		});
+	}
+
+	SetBranchesForIntroAnimation(){
+		this.branches.forEach(branch => {
+			branch.animationDuration = this.introDuration
+			branch.drawingInstructions.forEach(instruction => {
+				instruction.options.SetActiveColor('black')
+			});
+			branch.isActive = true
+		});
+		this.isIntroPlaying = true
+	}
+
+	ResetranchesForAnimationDuration(){
+		this.branches.forEach(branch => {
+			branch.animationDuration = this.animationDuration
+			branch.drawingInstructions.forEach(instruction => {
+				instruction.options.SetActiveColor('red')
+			});
+			
+			branch.isActive = false
+		});
+		this.isIntroPlaying = false
+	}
+
+
+	activateBranch(branch: Branch) {
+		var activeBranch = this.branches.find(f => f.isActive)
+		if(activeBranch){
+			activeBranch.isActive = false
+		}
+		branch.isActive = true
+	}
+
+	resetSelections(){
+		var activeBranches = this.branches.filter(f => f.isActive)
+		activeBranches.forEach(branch => {
+			if(!this.dragActivated){
+				branch.isActive = false
+			}
+		});
+	}
+
+	//#endregion
+
+	//#region Utility functions
+
+	getEventLocation(e: MouseEvent) {
+        return new Vector2(e.clientX, e.clientY)
     }
-    // #endregion
+ 
+	resizeCanvas() {
+
+		this.canvas.nativeElement.width = window.innerWidth
+		this.canvas.nativeElement.height = window.innerHeight
+		this.canvasCenter.x = window.innerWidth / 2
+		this.canvasCenter.y = window.innerHeight / 2
+
+		this.center.x = this.canvasCenter.x + this.offset.x
+		this.center.y = this.canvasCenter.y + this.offset.y
+	}
+
+	//#endregion
+
+	//#region main render funcitons
+	render() {
+	
+		this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
+		var collitionedBranches: Branch[] = []
 
 
-    //#region functions
+		if(!this.isIntroPlaying){
+			this.displayTree.drawingInstructions.forEach(instruction => {
+				instruction.draw(this.context, this.center, this.zoom)
+			});
+		}
+		
 
-    //#region drawing functions
-    draw(){
+		//Render all Branches
+		this.branches.forEach(branch => {			
+			if(branch.isActive){
+				collitionedBranches.push(branch)
+			}else{
+				branch.drawingInstructions.forEach(instruction => {
+					instruction.resetAnimation()
+				});	
+				branch.resetAnimation()
+			}
+		});
 
-        //Find first clade
-        var firstClade = this.allClades.find(c => c.tier == 0)?.id
-        if(this.context === undefined || firstClade === undefined)
-            return
-        
-        //Empties the canvas
-        this.context?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
-        
-        this.renderElement(firstClade)
-    }
+		collitionedBranches.forEach(branch => {
+			branch.animateFrame(this.context, this.center, this.zoom)
+			branch.UpdateDelta(this.deltaTime)
+		});
+		
+	}
 
-    getMaxTier(){
-        var maxTier = 0;
+	checkCollision(){
 
-        this.allClades.forEach(clade => {
-            maxTier = clade.tier > maxTier ? clade.tier : maxTier
-        });
+		if(!this.isIntroPlaying){
+			var didCollitionOnce = false;
+			this.branches.forEach((branch, index) => {
+				branch.drawingInstructions.filter(i => i.hasCollition).forEach(instruction => {
+					instruction.drawCollition(this.context, this.center, this.zoom)
+					if(this.context.isPointInStroke(this.mousePosition.x, this.mousePosition.y) && branch.doesAnimate){
+						instruction.isCollitioningWithMouse = true
+						didCollitionOnce = true
+						this.CollidedBranchIndex = index
+					}else{
+						instruction.isCollitioningWithMouse = false
+					}
+				})
+			});
 
-        return maxTier
-    }
+			if(didCollitionOnce){
+				this.setCursorToPointer()
+			}else{
+				this.setCursorToDefault()
+			}
 
-    renderElement(cladeId: String){
-        var ctx = this.context;
+			this.isMouseColliding = didCollitionOnce
+		}
+		
+	}
 
-        const center = {
-            x: this.currentCenter.x,
-            y: this.currentCenter.y
-        }
+	setCursorToPointer(){
+		this.canvas.nativeElement.classList.remove('cursor-default')
+		this.canvas.nativeElement.classList.add('cursor-pointer')
+	}
 
-        var clade = this.allClades.find(c => c.id == cladeId)
-        if(clade === undefined){
-            console.error("Clade " + cladeId + " NOT found.")
-            return
-        }
+	setCursorToDefault(){
+		this.canvas.nativeElement.classList.remove('cursor-pointer')
+		this.canvas.nativeElement.classList.add('cursor-default')
+	}
 
-        /*
-            - Move to the next step ALWAYS (if there is one)
-            - Check if we need to arch or we finished 
-            - If we need to arch, send sons to render in respective coords
-            - Else we just extend the species to the end of the circle if they are not already there
-        */
+	tick() {
+		this.checkCollision()
+		this.render()
+	} 
+	
+	//#endregion
 
-        //If this is the last clade to draw whe make the "distnce" all the way to the end
-        const distance = clade.drawHelper!.coords.distance
-        const angle = clade.drawHelper!.coords.angle
-        const coords = this.getCardinalCoordsFromPolar(distance, angle)
-        const nextStep = this.getCardinalCoordsFromPolar(distance + 100, angle)
-
-        //Here we set the sryle of the lines and circles for all the tree
-        ctx!.fillStyle = "red";
-        ctx!.strokeStyle = "red";
-        ctx!.lineCap = "round";
-        
-        
-
-        //Renders center of cladogram, only the first clade enters this if
-        
-        ctx!.lineWidth = this.lineWidth;
-        ctx?.beginPath();
-        ctx?.moveTo(center.x, center.y)
-        ctx?.arc(center.x, center.y, 6 * this.zoom, 0, 2 * Math.PI)
-        ctx?.fill()
-        
-        // ctx?.save()
-        // ctx?.translate(coords.x, coords.y);
-        // ctx?.beginPath();
-        // ctx!.font = 18 * this.zoom + "px Arial";
-        // ctx?.fillText(clade.name, 10, 5 * this.zoom);
-        // ctx?.restore();
-
-        //This means the clade has at least a son, so there is a next step 
-        if(clade.directSons?.length! > 0){
-
-            if(clade.directSons!.length! == 1){
-                const lastCoords = this.getCardinalCoordsFromPolar(distance + this.treeRadiusSteps, angle)
-                ctx?.beginPath()
-                ctx?.moveTo(coords.x, coords.y)
-                ctx?.lineTo(lastCoords.x, lastCoords.y)
-                ctx?.stroke()
-            }
-            else{
-                ctx?.beginPath()
-                ctx?.moveTo(coords.x, coords.y)
-                ctx?.lineTo(nextStep.x, nextStep.y)
-                ctx?.stroke()
-            }
-
-            //If it has more than 1 sons, we ned to render an arch 
-            if(clade.directSons?.length > 1){
-                clade.directSons.forEach(sonId => {
-                    
-                    var son = this.allClades.find(c => c.id == sonId)!;
-                    const sonsDistance = son.drawHelper!.coords.distance
-                    const sonsAngle = son.drawHelper!.coords.angle
-                    const startAngle =  angle * ( Math.PI / 180)
-                    const endAngle =  sonsAngle * ( Math.PI / 180)
-
-                    ctx?.beginPath()
-                    ctx?.moveTo(nextStep.x, nextStep.y)
-
-                    //The var arch orientation is a flag to know where is the arc drawing to
-                    ctx?.arc(center.x, center.y, sonsDistance * this.zoom, startAngle, endAngle, !son.drawHelper!.arcOrientation)
-                    ctx?.stroke() 
-
-                    this.renderElement(sonId)
-                });
-            }
-            else if(clade.directSons?.length == 1){
-                this.renderElement(clade?.directSons[0])
-            }
-        }
-
-
-        //This is when the path has reached the end, this displays the name of the species
-        if(clade.directSons.length == 0){
-            let padding = 10 * this.zoom;
-
-            const lastCoords = this.getCardinalCoordsFromPolar(this.treeRadius, angle)
-
-            //We draw a line to the
-            ctx?.beginPath()
-            ctx?.moveTo(lastCoords.x, lastCoords.y)
-            ctx?.lineTo(coords.x, coords.y)
-            ctx?.stroke()
-            
-            //We sabe the canvas and prepare it to write and rotate the text
-            ctx?.save()
-            ctx?.translate(lastCoords.x, lastCoords.y);
-
-            //We orient the text to follow the line but to also be somewhat readable
-            let textAngle =  angle ;
-            if(textAngle < 90){
-                ctx!.textAlign = "left"
-            }
-            else if(textAngle >= 90 && textAngle < 180) {
-                ctx!.textAlign = "right"
-                textAngle = textAngle + 180
-                padding = padding * -1
-            } 
-            else if(textAngle >= 180 && textAngle < 270){
-                ctx!.textAlign = "right"
-                textAngle = textAngle + 180
-                padding = padding * -1
-
-            }else if(textAngle >= 270){
-                ctx!.textAlign = "left"
-            }
-            
-            ctx?.rotate( textAngle * (Math.PI / 180));
-            ctx!.font = 18 * this.zoom + "px Arial";
-            //var name = this.dummySpecies.find(s => s.genus == clade!.id)?.binomialNomenclature ?? "??????????????" 
-            ctx?.fillText(clade.name, padding, 5 * this.zoom);
-            ctx?.restore();
-        }
-
-    }
-    
-    draw_old() {
-        const context = this.context
-        
-        if(context === undefined)
-            return
-        
-        context?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
-
-        const center = {
-            x: this.currentCenter.x,
-            y: this.currentCenter.y
-        }
-
-        context?.beginPath()
-
-        //Whole tree baby!
-        this.dummySpecies.forEach(species => {
-
-            const family = this.tree?.getSpeciesFamily(species)
-
-            family?.forEach((clade, i) =>{
-                var distance = clade.drawHelper.totalSons == 0 ? this.treeRadius : clade.drawHelper.coords.distance
-                const angle = clade.drawHelper.coords.angle
-                const coords = this.getCardinalCoordsFromPolar(distance, angle)
-                const nextStep = this.getCardinalCoordsFromPolar(distance + 100, angle)
-                
-                //First we move to the next division if there is a next step
-                context!.fillStyle = "red";
-                context!.strokeStyle = "gray";
-                context!.lineCap = "round";
-                context!.lineWidth = this.lineWidth;
-                if(family[i + 1]){
-                    context?.beginPath()
-                    context?.moveTo(coords.x, coords.y)
-                    context?.lineTo(nextStep.x, nextStep.y)
-                    context?.stroke()
-                }
-                //Then we draw an arch if theres a division
-                if(family[i + 2]){
-                    const son = family[i+1];
-                    const sonsDistance = son.drawHelper.coords.distance
-                    const sonsAngle = son.drawHelper.coords.angle
-                    const startAngle = - angle * ( Math.PI / 180)
-                    const endAngle =  - sonsAngle * ( Math.PI / 180)
-
-                    context?.beginPath()
-                    context?.moveTo(nextStep.x, nextStep.y)
-                    context?.arc(center.x, center.y, sonsDistance * this.zoom, startAngle, endAngle, son.drawHelper.arcOrientation)
-                    context?.stroke() 
-                }
-
-                //If its the last one we finish the line and print the species name
-                if(clade.drawHelper.totalSons == 0){
-                    const parentCoords = this.getCardinalCoordsFromPolar(family[i-1].drawHelper.coords.distance, family[i-1].drawHelper.coords.angle);
-                    let padding = 10 * this.zoom;
-
-                    context?.beginPath()
-                    context?.moveTo(parentCoords.x, parentCoords.y)
-                    context?.lineTo(coords.x, coords.y)
-                    context?.stroke()
-
-                    context?.beginPath();
-                    context?.moveTo(coords.x, coords.y)
-                    context?.arc(coords.x, coords.y, 6 * this.zoom, 0, 2 * Math.PI)
-                    context?.fill()
-
-                    context?.save()
-                    context?.translate(coords.x, coords.y);
-
-                    let textAngle =  angle ;
-                    if(textAngle < 90){
-                        // console.log(species.commonName, "< 90", textAngle)
-                        context!.textAlign = "left"
-
-                    }
-                    else if(textAngle >= 90 && textAngle < 180) {
-                        // console.log(species.commonName, "textAngle >= 90 && textAngle < 180", textAngle)
-                        context!.textAlign = "left"
-                        textAngle = textAngle - 180;
-                        
-                    } 
-                    else if(textAngle >= 180 && textAngle < 270){
-                        // console.log(species.commonName, "textAngle >= 180 && textAngle < 270", textAngle)
-                        context!.textAlign = "right"
-                        textAngle = textAngle - 180;
-                        padding = padding * -1
-
-                    }else if(textAngle >= 270){
-                        // console.log(species.commonName, "textAngle >= 270", textAngle)
-                        context!.textAlign = "right"
-                        padding = padding * -1
-
-                    }
-
-                    context?.rotate( textAngle * ( Math.PI / 180) );
-                    context!.font = 18 * this.zoom + "px Arial";
-                    context?.fillText(species.binomialNomenclature, padding, 5 * this.zoom);
-                    context?.restore();
-                }
-            })
-        });
-    }
-
-    getCardinalCoordsFromPolar(distance: number, angle: number) {
-        //0° siendo el este y 180° el oeste
-        angle = angle * (Math.PI / 180)
-        var x = (this.center.x + (distance * Math.cos(angle)) * this.zoom) + this.offset.x
-        var y = (this.center.y + (distance * Math.sin(angle)) * this.zoom) + this.offset.y
-
-        return { x: x, y: y }
-    }
-
-    drawLineToPolarCoord(origin: {x: number, y: number}, distance: number, angle: number) {
-        const context = this.context
-        context?.moveTo(origin.x, origin.y)
-        var coords = this.getCardinalCoordsFromPolar(distance, angle)
-        context?.lineTo(coords.x, coords.y)
-    }
-    //#endregion
-
-
-    //#region canvas functions
-    resizeCanvas() {
-        this.canvas.nativeElement.width = window.innerWidth;
-        this.canvas.nativeElement.height = window.innerHeight;
-
-        this.center.x = window.innerWidth / 2
-        this.center.y = window.innerHeight / 2
-
-        this.currentCenter.x = this.center.x + this.offset.x
-        this.currentCenter.y = this.center.y + this.offset.y
-        this.draw();
-    }
-    //#endregion
-
-
-    //#endregion
 }
+
+
+

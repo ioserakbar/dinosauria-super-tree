@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RoundCladogramComponent } from './round-cladogram.component';
+import { FloatingMenuComponent } from './floating-menu.component';
 
-describe('RoundCladogram', () => {
-  let component: RoundCladogramComponent;
-  let fixture: ComponentFixture<RoundCladogramComponent>;
+describe('FloatingMenuComponent', () => {
+  let component: FloatingMenuComponent;
+  let fixture: ComponentFixture<FloatingMenuComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RoundCladogramComponent]
+      imports: [FloatingMenuComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(RoundCladogramComponent);
+    fixture = TestBed.createComponent(FloatingMenuComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

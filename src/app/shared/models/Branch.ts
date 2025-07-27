@@ -47,10 +47,6 @@ export class Branch{
             return
         }
 
-        if(instruction.type =="Text"){
-            var a = "debugin"
-        }
-
         if(instruction.finishedAnimating){
             this.animateFrame(context, center, zoom, currentInstructionIndex + 1)
         }

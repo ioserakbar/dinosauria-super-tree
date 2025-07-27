@@ -1,5 +1,5 @@
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Routes } from '@angular/router';
 
 import { HttpClientModule, provideHttpClient, withFetch } from '@angular/common/http';
 
@@ -15,3 +15,4 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch())
   ]
 };
+
