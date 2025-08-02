@@ -7,7 +7,8 @@
 /bazel-out
 
 # Node
-/node_modules
+DinosauriaSuperTree.MVC/node_modules
+DinosauriaSuperTree.WebApi/node_modules
 npm-debug.log
 yarn-error.log
 
@@ -29,7 +30,8 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
+DinosauriaSuperTree.MVC/.angular/cache
+DinosauriaSuperTree.WebApi/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
@@ -40,3 +42,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+#API Build and Test Coverage
+DinosauriaSuperTree.WebApi/build
+DinosauriaSuperTree.WebApi/coverage

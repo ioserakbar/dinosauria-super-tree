@@ -1,7 +1,7 @@
 import { NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faBars, faX, faPlay, faHexagonNodes, faBug, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'pt-floating-menu',
@@ -9,20 +9,18 @@ import { faBars, faX, faPlay, faHexagonNodes, faBug, faStar } from '@fortawesome
   templateUrl: './floating-menu.component.html'
 })
 export class FloatingMenuComponent {
-  faBars = faBars;
-  faX = faX;
-  faPlay = faPlay;
-  faHexagonNodes = faHexagonNodes;
-  faBug = faBug;
-  faStar = faStar;
+  faCircleInfo = faCircleInfo;
 
   isMenuOpened = true;
-
-
+  ControlSettingsText: 'Open' | 'Close' =  'Close';
 
   toggleMenu(){
     this.isMenuOpened = !this.isMenuOpened;
-    document.getElementById('options-menu')?.classList.toggle("opened")
+    this.ControlSettingsText = this.ControlSettingsText == 'Open' ? 'Close' : 'Open';
   }
 
+
+
+
+ 
 }

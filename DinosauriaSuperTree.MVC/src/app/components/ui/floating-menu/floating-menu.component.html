@@ -1,0 +1,100 @@
+<style>
+    
+    .floating-menu{
+        position: absolute;
+        width: 300px;
+        background-color: black;
+        font-family: monospace;
+    }
+
+    .selectable{
+        cursor: pointer;
+    }
+
+    .option-row{
+        display: flex;
+        flex-wrap: wrap;
+        border-left: 5px solid none;
+        padding-left: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid white;
+        user-select: none;
+        border: 0;
+        border-left: 5px solid transparent;
+    }
+
+    .option-row .label{
+        width: 60%;
+        line-height: 1.2;
+        margin-right: 10px;
+    }
+
+    .option-row .input{
+        display: flex;
+        align-items: center;
+    }
+
+    .option-header{
+        text-align: center;
+        margin: 10px;
+    }
+
+
+
+</style>
+<div class="floating-menu" id="options-menu">
+    <div id="settings-content"  *ngIf="isMenuOpened">
+        <div class="option-header">
+            Tree Options
+        </div>
+        <div class="option-row" style="border-color: red;">
+            <div class="label">
+                <label for='debug' class="selectable">Debug Mode</label>
+            </div>
+            <div class="input">
+                <input type="checkbox" name='debug' id='debug' /> 
+            </div>
+        </div>
+        <div class="option-row" style="border-color: purple;">
+            <div class="label">
+                <label for='clade' class="selectable">Enable Clades Names</label>
+            </div>
+            <div class="input">
+                <input type="checkbox" name='clade' id='clade' /> 
+            </div>
+        </div>
+        <div class="option-row" style="border-color: pink;">
+            <div class="label">
+                <label for='animation' class="selectable">Disable Animations</label>
+            </div>
+            <div class="input">
+                <input type="checkbox" name='animation' id='animation' /> 
+            </div>
+        </div>
+        <div class="option-header">
+            Test Options
+        </div>
+        <div class="option-row" style="border-color: green;">
+            <div class="label">
+                <label for='animation' class="selectable">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</label>
+            </div>
+            <div class="input">
+                <input type="checkbox" name='animation' id='animation' /> 
+            </div>
+        </div>
+        <div class="option-row" style="border-color: pink;">
+            <div class="label">
+                <label for='animation' class="selectable">a</label>
+            </div>
+            <div class="input">
+                <input type="checkbox" name='animation' id='animation' /> 
+            </div>
+        </div>
+        
+        
+    </div>
+    <div id="setting-control" (click)="toggleMenu()">
+        <p class="m-0 text-center selectable user-select-none">{{ControlSettingsText}} Settings</p>
+    </div>
+</div>
+ 
