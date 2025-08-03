@@ -1,5 +1,5 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
+DinosauriaSuperTree.WebApi/.env
 # Compiled output
 /dist
 /tmp
@@ -38,10 +38,6 @@ DinosauriaSuperTree.WebApi/.angular/cache
 /libpeerconnection.log
 testem.log
 /typings
-
-#env files
-DinosauriaSuperTree.WebApi\.env
-DinosauriaSuperTree.MVC\.env
 
 # System files
 .DS_Store
