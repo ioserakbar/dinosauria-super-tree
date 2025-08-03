@@ -38,7 +38,10 @@ DinosauriaSuperTree.WebApi/.angular/cache
 /libpeerconnection.log
 testem.log
 /typings
-.env
+
+#env files
+DinosauriaSuperTree.WebApi\.env
+DinosauriaSuperTree.MVC\.env
 
 # System files
 .DS_Store
