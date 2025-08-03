@@ -13,36 +13,36 @@ export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
 
 export const Main = () => {
-    logging.info('-----------------------------');
-    logging.info('Initializing API');
-    logging.info('-----------------------------');
+    logging.log('-----------------------------');
+    logging.log('Initializing API');
+    logging.log('-----------------------------');
     application.use(express.urlencoded({ extended: true }));
     application.use(express.json());
 
-    logging.info('-----------------------------');
-    logging.info('Logging & Configuration');
-    logging.info('-----------------------------');
+    logging.log('-----------------------------');
+    logging.log('Logging & Configuration');
+    logging.log('-----------------------------');
     application.use(loggingHandler);
     application.use(corsHandler);
 
-    logging.info('-----------------------------');
-    logging.info('Define Controller Routing');
-    logging.info('-----------------------------');
+    logging.log('-----------------------------');
+    logging.log('Define Controller Routing');
+    logging.log('-----------------------------');
     defineRoutes([MainController], application);
 
-    logging.info('-----------------------------');
-    logging.info('Define Routing Routing');
-    logging.info('-----------------------------');
+    logging.log('-----------------------------');
+    logging.log('Define Routing');
+    logging.log('-----------------------------');
     application.use(routeNotFound);
 
-    logging.info('-----------------------------');
-    logging.info('Start Server');
-    logging.info('-----------------------------');
+    logging.log('-----------------------------');
+    logging.log('Starting Server');
+    logging.log('-----------------------------');
     httpServer = http.createServer(application);
     httpServer.listen(SERVER.SERVER_PORT, () => {
-        logging.info('-----------------------------');
-        logging.info(`Start Started: ${SERVER.SERVER_HOSTNAME}:${SERVER.SERVER_PORT}`);
-        logging.info('-----------------------------');
+        logging.log('-----------------------------');
+        logging.log(`Start Started: ${SERVER.SERVER_HOSTNAME}:${SERVER.SERVER_PORT}`);
+        logging.log('-----------------------------');
     });
 };
 
