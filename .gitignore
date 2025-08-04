@@ -1,5 +1,5 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-DinosauriaSuperTree.WebApi/.env
+
 # Compiled output
 /dist
 /tmp
@@ -46,3 +46,6 @@ Thumbs.db
 #API Build and Test Coverage
 DinosauriaSuperTree.WebApi/build
 DinosauriaSuperTree.WebApi/coverage
+
+DinosauriaSuperTree.WebApi/.env
+DinosauriaSuperTree.MVC/.env

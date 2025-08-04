@@ -10,7 +10,7 @@ export function Route(method: keyof Express, path: string = '', ...middleware: R
             routeHandlers.set(method, new Map());
         }
 
-        routeHandlers.get(method)?.set(routePath, [, , , middleware, descriptor.value]);
+        routeHandlers.get(method)?.set(routePath, [...middleware, descriptor.value]);
 
         Reflect.defineMetadata('routeHandlers', routeHandlers, target);
     };
