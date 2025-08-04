@@ -10,6 +10,7 @@ import { defineRoutes } from './modules/routes';
 import mongoose from 'mongoose';
 import SpeciesController from './controller/speciesController';
 import { declareHandler } from './middleware/declareHandler';
+import CladeController from './controller/cladeController';
 
 export const application = express();
 export let httpServer: ReturnType<typeof http.createServer>;
@@ -35,6 +36,7 @@ export const Main = async () => {
 
     logging.log('Service Routing...');
     defineRoutes([SpeciesController], application);
+    defineRoutes([CladeController], application);
 
     logging.log('Define Routing...');
     application.use(routeNotFound);

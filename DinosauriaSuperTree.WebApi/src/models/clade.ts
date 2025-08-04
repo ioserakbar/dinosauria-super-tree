@@ -18,12 +18,6 @@ export const cladeSchema = new Schema(
         directSons: { type: [String], required: false }
     },
     {
-        toJSON: {
-            virtuals: true
-        },
-        toObject: {
-            virtuals: true
-        },
         timestamps: true
     }
 );
