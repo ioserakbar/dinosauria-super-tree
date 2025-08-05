@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
+import { HttpResponses } from '../../library/HttpResponses.enum';
 
 export function MongoUpdate(model: Model<any>) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -10,7 +11,7 @@ export function MongoUpdate(model: Model<any>) {
                 const document = await model.findById(req.params.id);
 
                 if (!document) {
-                    return res.status(404).json({ message: 'not found' });
+                    return res.status(HttpResponses.NotFound).json({ message: 'not found' });
                 }
 
                 document.set({ ...req.body });
@@ -21,7 +22,7 @@ export function MongoUpdate(model: Model<any>) {
             } catch (error) {
                 logging.error(error);
 
-                return res.status(400).json(error);
+                return res.status(HttpResponses.InternalServerError).json(error);
             }
 
             return originalMethod.call(this, req, res, next);
