@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
+import { HttpResponses } from '../../library/HttpResponses.enum';
 
 export function MongoDelete(model: Model<any>) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -15,7 +16,7 @@ export function MongoDelete(model: Model<any>) {
             } catch (error) {
                 logging.error(error);
 
-                return res.status(400).json(error);
+                return res.status(HttpResponses.InternalServerError).json(error);
             }
 
             return originalMethod.call(this, req, res, next);
