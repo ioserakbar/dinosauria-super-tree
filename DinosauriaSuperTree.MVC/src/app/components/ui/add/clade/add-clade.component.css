@@ -1,20 +1,20 @@
-.container{
+.container {
     margin-top: 80px;
     display: flex;
     margin-bottom: 30px;
 }
-form{
+form {
     width: 1000px;
 }
-.buttons button:hover{
+.buttons button:hover {
     scale: 1.2;
 }
 
-.cladogram-list{
+.cladogram-list {
     padding: 0px 80px;
     width: 100%;
 }
 
-.clade{
+.clade {
     border: 1px solid white;
 }

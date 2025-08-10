@@ -13,7 +13,7 @@ export function MongoGet(model: Model<any>) {
                 if (document) {
                     req.mongoGet = document;
                 } else {
-                    return res.status(400).json({ error: 'Not found' });
+                    return res.status(HttpResponses.NotFound).json({ error: 'Not found' });
                 }
             } catch (error) {
                 logging.error(error);

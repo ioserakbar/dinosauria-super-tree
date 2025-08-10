@@ -2,46 +2,47 @@
     <form [formGroup]="addCladeForm" (ngSubmit)="submit()" class="row">
         <div class="first-col col-6">
             <label for="name">Name</label>
-            <br/>
-            <input id="name" formControlName="name" type="text" #name (change)="setNewCladeName(name.value)"/>
-            <br/>
-            <br/>
+            <br />
+            <input id="name" formControlName="name" type="text" #name (change)="setNewCladeName(name.value)" />
+            <br />
+            <br />
             <label for="parentClade">Parent Clade</label>
-            <br/>
-            <select formControlName="parentClade" (change)="changeDirectSons(parentclade.value)"  #parentclade>
-                <option *ngFor="let item of this.allClades; let i = index" value="{{item.id}}" [selected]="i == 0" >
-                    {{item.name}}
+            <br />
+            <select formControlName="parentClade" (change)="changeDirectSons(parentclade.value)" #parentclade>
+                <option *ngFor="let item of this.allClades; let i = index" value="{{ item._id }}" [selected]="i == 0">
+                    {{ item.name }}
                 </option>
             </select>
-            <br/>
-            <br/>
+            <br />
+            <br />
             <label for="description">Description</label>
-            <br/>
-            <input id="description" formControlName="description" type="text"/>
-            <br/>
-            <br/>
-            <input type="submit" value="submit"/>
+            <br />
+            <input id="description" formControlName="description" type="text" />
+            <br />
+            <br />
+            <input type="submit" value="submit" />
         </div>
         <div class="col-6" *ngIf="showOptionsForChildrenManagment">
             <label for="directSons"> Choose option for existing children</label>
-            <br/>
+            <br />
             <select formControlName="directSons" id="directSons" #directSons>
-                <option *ngFor="let item of this.directSonsOpions; let i = index" ngValue="{{item.id}}" [selected]="i == 0" >
-                    {{item.name}}
+                <option *ngFor="let item of this.directSonsOpions; let i = index" ngValue="{{ item.id }}" [selected]="i == 0">
+                    {{ item.name }}
                 </option>
             </select>
         </div>
     </form>
-
 </div>
 <div class="cladogram-list row">
-    <div class="col-3 clade ps-5" *ngFor="let clade of allClades" > 
-        <div class="mb-3" style="width:fit-content;"> 
-            <h2 style="font-size: 30px;">{{clade.name}}</h2>
-            <h2  class="ms-5" style="font-size: 30px;">Polar coords: ({{clade.drawHelper?.coords?.angle}}, {{clade.drawHelper?.coords?.distance}})</h2> 
-            <h2  class="ms-5" style="font-size: 30px;">Total sons: {{clade.drawHelper?.totalSons}}</h2> 
-            <h2  class="ms-5" style="font-size: 30px;">Arch orientation: {{clade.drawHelper?.arcOrientation}}</h2> 
-            <h2  class="ms-5" style="font-size: 30px;">Tier: {{clade.tier}}</h2> 
+    <div class="col-3 clade ps-5" *ngFor="let clade of allClades">
+        <div class="mb-3" style="width: fit-content">
+            <h2 style="font-size: 30px">{{ clade.name }}</h2>
+            <h2 class="ms-5" style="font-size: 30px">
+                Polar coords: ({{ clade.drawHelper?.coords?.angle }}, {{ clade.drawHelper?.coords?.distance }})
+            </h2>
+            <h2 class="ms-5" style="font-size: 30px">Total sons: {{ clade.drawHelper?.totalSons }}</h2>
+            <h2 class="ms-5" style="font-size: 30px">Arch orientation: {{ clade.drawHelper?.arcOrientation }}</h2>
+            <h2 class="ms-5" style="font-size: 30px">Tier: {{ clade.tier }}</h2>
         </div>
     </div>
-</div> 
+</div>

@@ -1,143 +1,133 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CladeService } from '../../../../services/clade/clade.service';
+import { CladeService } from '../../../../services/clade.service';
 import { ICladeInterface } from '../../../../shared/interfaces/ICladeRegister';
 import { Clade } from '../../../../shared/models/Clade';
 import { NgFor, NgIf } from '@angular/common';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
 @Component({
-	selector: 'pt-add-clade',
-	imports: [ReactiveFormsModule, NgFor, NgMultiSelectDropDownModule, NgIf],
-	templateUrl: './add-clade.component.html',
-	styleUrl: './add-clade.component.css'
+    selector: 'pt-add-clade',
+    imports: [ReactiveFormsModule, NgFor, NgMultiSelectDropDownModule, NgIf],
+    templateUrl: './add-clade.component.html',
+    styleUrl: './add-clade.component.css'
 })
 export class AddCladeComponent implements OnInit {
-	allClades: Clade[] = []
+    allClades: Clade[] = [];
 
-	addCladeForm!: FormGroup;
-	isSubmited = false;
+    addCladeForm!: FormGroup;
+    isSubmited = false;
 
-	showOptionsForChildrenManagment = false
-	directSonsOpions: { name: string, id: string }[] = []
+    showOptionsForChildrenManagment = false;
+    directSonsOpions: { name: string; id: string }[] = [];
 
-	selectedParentClade?: Clade = new Clade
-	newCladeTempName: string = ""
+    selectedParentClade?: Clade = new Clade();
+    newCladeTempName: string = '';
 
+    constructor(private formBuilder: FormBuilder, private cladeService: CladeService) {}
 
-	constructor(
-		private formBuilder: FormBuilder,
-		private cladeService: CladeService
-	) { }
+    ngOnInit() {
+        const $clades = this.cladeService.getAll();
+        $clades.subscribe({
+            next: (value) => {
+                this.allClades = value;
+            }
+        });
 
-	ngOnInit() {
+        this.addCladeForm = this.formBuilder.group({
+            name: ['', [Validators.required]],
+            parentClade: ['', [Validators.required]],
+            directSons: ['', [Validators.required]],
+            description: ['']
+        });
+    }
 
-		const $clades = this.cladeService.getAll()
-		$clades.subscribe({
-			next: value => {
-				this.allClades = value
-			}
-		})
+    getAllCladeNames() {
+        return this.allClades.map((c) => c.name);
+    }
 
-		this.addCladeForm = this.formBuilder.group({
-			name: ['', [Validators.required]],
-			parentClade: ['', [Validators.required]],
-			directSons: ['', [Validators.required]],
-			description: ['']
-		})
-	}
+    setNewCladeName(newName: string) {
+        this.newCladeTempName = newName;
+    }
 
-	getAllCladeNames(){
-		return this.allClades.map(c => c.name)
-	}
+    changeDirectSons(selectedCladeId: string) {
+        this.selectedParentClade = this.allClades.find((c) => c._id == selectedCladeId)!;
 
-	setNewCladeName(newName: string){
-		this.newCladeTempName = newName
-	}
+        var pDirectSonsOpions = [];
 
-	changeDirectSons(selectedCladeId: string){
-		this.selectedParentClade = this.allClades.find(c => c.id == selectedCladeId)!
+        this.selectedParentClade.directSons.forEach((son) => {
+            var sonClade = this.allClades.find((c) => c._id == son)!;
 
-		var pDirectSonsOpions = []
+            pDirectSonsOpions.push({
+                name: 'The new clade will be the new parent of ' + sonClade.name,
+                id: sonClade._id + '-parent'
+            });
+        });
 
-		this.selectedParentClade.directSons.forEach(son =>{
-			var sonClade = this.allClades.find(c => c.id == son)!
-			
-			pDirectSonsOpions.push({
-				name: "The new clade will be the new parent of " + sonClade.name,
-				id: sonClade.id + "-parent"
-			})
-		})
+        var sonClade = this.allClades.find((c) => c._id == this.selectedParentClade?.directSons[0])!;
 
-		var sonClade = this.allClades.find(c => c.id == this.selectedParentClade?.directSons[0])!
+        pDirectSonsOpions.push({
+            name: 'The new clade will another son',
+            id: sonClade._id + '-sibling'
+        });
 
-		pDirectSonsOpions.push({
-			name: "The new clade will another son" ,
-			id: sonClade.id + "-sibling"
-		})
+        pDirectSonsOpions.push({
+            name: 'Both will be children of the new calde',
+            id: '0-both'
+        });
 
-		pDirectSonsOpions.push({
-			name: "Both will be children of the new calde",
-			id: "0-both"
-		})
-		
-		this.directSonsOpions = pDirectSonsOpions
+        this.directSonsOpions = pDirectSonsOpions;
 
+        if (this.selectedParentClade.directSons.length <= 0) {
+            this.showOptionsForChildrenManagment = false;
+        } else {
+            this.showOptionsForChildrenManagment = true;
+        }
+    }
 
-		if(this.selectedParentClade.directSons.length <= 0){
-			this.showOptionsForChildrenManagment = false
-		}
-		else{
-			this.showOptionsForChildrenManagment = true
-		}
-	}
+    get fc() {
+        return this.addCladeForm.controls;
+    }
 
-	get fc() {
-		return this.addCladeForm.controls
-	}
+    submit() {
+        this.isSubmited = true;
 
-	submit() {
+        if (this.addCladeForm.invalid) {
+            console.log('form is invalid', this.addCladeForm);
+            return;
+        }
 
-		this.isSubmited = true
+        const fv = this.addCladeForm.value;
 
-		if (this.addCladeForm.invalid) {
-			console.log("form is invalid", this.addCladeForm)
-			return
-		}
+        console.log(this.addCladeForm);
 
-		const fv = this.addCladeForm.value
+        var newCladeDirectSons: string[] = [];
 
-		console.log(this.addCladeForm)
+        var rawDirectSons = fv.directSons.split('-');
 
-		var newCladeDirectSons: string[] = []
+        var directSonsId = rawDirectSons[0];
+        var method = rawDirectSons[1];
 
-		var rawDirectSons = fv.directSons.split("-")
+        if (method == 'both') {
+            newCladeDirectSons = [...this.selectedParentClade?.directSons!];
+        } else {
+            newCladeDirectSons.push(directSonsId);
+        }
 
-		var directSonsId = rawDirectSons[0]
-		var method = rawDirectSons[1]
-		
-		if(method == "both"){
-			newCladeDirectSons = [ ...this.selectedParentClade?.directSons!]
-		}
-		else {
-			newCladeDirectSons.push(directSonsId)
-		}
+        const newClade: ICladeInterface = {
+            name: fv.name,
+            parentCladeId: fv.parentClade,
+            description: fv.description,
+            isFirst: false,
+            tier: -1,
+            directSons: newCladeDirectSons,
+            mergeMethod: method
+        };
 
-		
-		const newClade: ICladeInterface = {
-			name: fv.name,
-			parentCladeId: fv.parentClade,
-			description: fv.description,
-			isFirst: false,
-			tier: -1,
-			directSons: newCladeDirectSons,
-			mergeMethod: method
-		}
+        console.log(fv);
 
-		console.log(fv)
-
-		this.cladeService.addClade(newClade).subscribe(_ => {
-			console.log("species added succesfully")
-		})
-	}
+        this.cladeService.addClade(newClade).subscribe((_) => {
+            console.log('species added succesfully');
+        });
+    }
 }
