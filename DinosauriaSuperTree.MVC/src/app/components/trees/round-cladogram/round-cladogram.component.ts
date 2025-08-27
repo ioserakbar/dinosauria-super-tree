@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, ElementRef, HostListener, Inject, NgZone, PLATFORM_ID, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Inject, NgZone, PLATFORM_ID, Testability, ViewChild } from '@angular/core';
 import { Vector2 } from '../../../shared/models/Vector2';
 import { Branch } from '../../../shared/models/Branch';
 import { DrawingObject, Arc, Line, Dot, CanvasText } from '../../../shared/models/DrawingObjects';
@@ -9,6 +9,7 @@ import { Clade } from '../../../shared/models/Clade';
 import { getCardinalCoordsFromPolarDegrees } from '../../../shared/functions/canvasTools';
 import { DrawingOptions } from '../../../shared/models/DrawingOptions';
 import { FloatingMenuComponent } from '../../ui/floating-menu/floating-menu.component';
+import { TreeSettings } from '../../../data/TreeSettings';
 
 @Component({
     selector: 'pt-round-cladogram',
@@ -35,6 +36,7 @@ export class RoundCladogramComponent {
     //Data
     displayTree: Branch = new Branch('Display tree', []);
     branches: Branch[] = [];
+    debugShapes: Branch = new Branch('Debug', []).SetDoesAnimate(false);
     allClades: Clade[] = [];
 
     //Animation controls
@@ -70,6 +72,14 @@ export class RoundCladogramComponent {
         if (this.introIntervalId) {
             clearInterval(this.introIntervalId);
         }
+    }
+
+    onSettingsChange(event: TreeSettings) {
+        this.setSettings(event);
+    }
+
+    setSettings(settings: TreeSettings) {
+        this.debugMode = settings.debugMode;
     }
 
     ngAfterViewInit() {
@@ -117,28 +127,28 @@ export class RoundCladogramComponent {
         this.divisionStep = this.maxTreeRadius / (this.maxDivisions + 1);
         this.generateBranches();
 
-        if (this.debugMode) {
-            //Debug "branch"
-            var instructions: DrawingObject[] = [
-                new Arc('Max Width Circle', new Vector2(0, 0), this.maxTreeRadius, 0, 2 * Math.PI, false).SetOptions(
-                    new DrawingOptions().SetColor('blue').SetDashedStyle([10, 10])
-                ),
-                new Arc('Max Width Circle With Text Area', new Vector2(0, 0), this.maxTreeRadius + textArea, 0, 2 * Math.PI, false).SetOptions(
-                    new DrawingOptions().SetColor('blue')
-                ),
-                new Dot('Center', new Vector2(0, 0), 10).SetOptions(new DrawingOptions().SetColor('red'))
-            ];
+        //Debug "branch"
+        var debugInstructions: DrawingObject[] = [
+            new Arc('Max Width Circle', new Vector2(0, 0), this.maxTreeRadius, 0, 2 * Math.PI, false).SetOptions(
+                new DrawingOptions().SetColor('blue').SetDashedStyle([10, 10])
+            ),
+            new Arc('Max Width Circle With Text Area', new Vector2(0, 0), this.maxTreeRadius + textArea, 0, 2 * Math.PI, false).SetOptions(
+                new DrawingOptions().SetColor('blue')
+            ),
+            new Dot('Center', new Vector2(0, 0), 10).SetOptions(new DrawingOptions().SetColor('red'))
+        ];
 
-            for (let i = 0; i < this.maxDivisions + 1; i++) {
-                instructions.push(
-                    new Arc('Max Width Circle', new Vector2(0, 0), this.divisionStep * i, 0, 2 * Math.PI, false).SetOptions(
-                        new DrawingOptions().SetColor('rgba(255, 0, 0, 0.27)').SetDashedStyle([10, 10])
-                    )
-                );
-            }
-
-            this.branches.push(new Branch('Debug branch', instructions).SetDoesAnimate(false));
+        for (let i = 0; i < this.maxDivisions + 1; i++) {
+            debugInstructions.push(
+                new Arc('Max Width Circle', new Vector2(0, 0), this.divisionStep * i, 0, 2 * Math.PI, false).SetOptions(
+                    new DrawingOptions().SetColor('rgba(255, 0, 0, 0.27)').SetDashedStyle([10, 10])
+                )
+            );
         }
+
+        debugInstructions.forEach((instruction) => {
+            this.debugShapes.drawingInstructions.push(instruction);
+        });
     }
 
     getMaxTier() {
@@ -186,8 +196,8 @@ export class RoundCladogramComponent {
                 const branchTipCoords = getCardinalCoordsFromPolarDegrees(this.maxTreeRadius, cladeAngle, new Vector2(0, 0), this.zoom);
                 const isLastOnFamily = familyClades.length == index + 1;
 
-                //branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4))
-                //branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords))
+                //branchInstructions.push(new Dot(member.name, cladeCardinalCoords, 4));
+                //branchInstructions.push(new CanvasText(member.name, member.name, cladeCardinalCoords));
                 if (!isLastOnFamily) {
                     var line = new Line(member.name, cladeCardinalCoords, cladeNextDivisionCoord);
                     branchInstructions.push(line);
@@ -243,21 +253,26 @@ export class RoundCladogramComponent {
                         this.zoom
                     );
 
-                    var textCollisionBoxColor = this.debugMode ? '#FFC0CB50' : '#FFC0CB00';
-                    if (this.debugMode) {
-                        this.AddInstructionToDisplayTree(
-                            new Line(member.name, branchTipCoords, branchEndCollisionLonePoint).SetOptions(
-                                new DrawingOptions().SetColor('red').SetLineWidth(1).SetLineCap('square')
-                            )
-                        );
-                    }
+                    var debugShape = new Line(member.name, branchTipCoords, branchEndCollisionLonePoint).SetOptions(
+                        new DrawingOptions().SetColor('red').SetLineWidth(1).SetLineCap('square')
+                    );
+
+                    this.debugShapes.drawingInstructions.push(debugShape);
 
                     var textCollition = new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
-                        .SetOptions(new DrawingOptions().SetColor(textCollisionBoxColor).SetLineWidth(cladeTextDisplay.fontSize).SetLineCap('square'))
+                        .SetOptions(new DrawingOptions().SetColor('#FFC0CB00').SetLineWidth(cladeTextDisplay.fontSize).SetLineCap('square'))
                         .ActivateCollition()
                         .SetDoesAnimate(false);
                     branchInstructions.push(textCollition);
                     this.AddInstructionToDisplayTree(textCollition);
+
+                    var textCollitionDebug = new Line(member.name, branchTipCoords, branchEndCollisionLonePoint)
+                        .SetOptions(new DrawingOptions().SetColor('#FFC0CB50').SetLineWidth(cladeTextDisplay.fontSize).SetLineCap('square'))
+                        .ActivateCollition()
+                        .SetDoesAnimate(false);
+                    branchInstructions.push(textCollition);
+
+                    this.debugShapes.drawingInstructions.push(textCollitionDebug);
                 }
             });
             this.branches.push(new Branch(clade.name, branchInstructions));
@@ -292,7 +307,6 @@ export class RoundCladogramComponent {
 
         do {
             var currentClade = this.allClades.find((x) => x._id == currentCladeId);
-            console.log(this.allClades, currentCladeId);
             if (currentCladeId == currentClade?.parentClade) {
                 console.error('Clade has self reference parent', currentClade);
                 searchFinished = true;
@@ -467,6 +481,13 @@ export class RoundCladogramComponent {
                 branch.resetAnimation();
             }
         });
+
+        //Debog shapes
+        if (this.debugMode) {
+            this.debugShapes.drawingInstructions.forEach((instruction) => {
+                instruction.draw(this.context, this.center, this.zoom);
+            });
+        }
 
         collitionedBranches.forEach((branch) => {
             branch.animateFrame(this.context, this.center, this.zoom);

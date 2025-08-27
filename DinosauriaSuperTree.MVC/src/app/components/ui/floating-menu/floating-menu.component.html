@@ -1,7 +1,7 @@
 <style>
     .floating-menu {
         position: absolute;
-        width: 300px;
+        width: 500px;
         background-color: black;
         font-family: monospace;
     }
@@ -37,52 +37,55 @@
         text-align: center;
         margin: 10px;
     }
+
+    .option-row .comboBox {
+        width: 35%;
+    }
+
+    .option-row .comboBox select {
+        width: 100%;
+        padding: 0px;
+        height: 20px;
+    }
+
+    .option-row .comboBox select:focus {
+        outline: none;
+    }
 </style>
 <div class="floating-menu" id="options-menu">
-    <div id="settings-content" *ngIf="isMenuOpened">
+    <div id="settings-content" *ngIf="showSettings">
         <div class="option-header">Tree Options</div>
         <div class="option-row" style="border-color: red">
             <div class="label">
                 <label for="debug" class="selectable">Debug Mode</label>
             </div>
-            <div class="input">
-                <input type="checkbox" name="debug" id="debug" />
-            </div>
-        </div>
-        <div class="option-row" style="border-color: purple">
-            <div class="label">
-                <label for="clade" class="selectable">Enable Clades Names</label>
-            </div>
-            <div class="input">
-                <input type="checkbox" name="clade" id="clade" />
-            </div>
-        </div>
-        <div class="option-row" style="border-color: purple">
-            <div class="label">
-                <label for="clade" class="selectable">Enable Clades On Selected Only</label>
-            </div>
-            <div class="input">
-                <input type="checkbox" name="clade" id="clade" />
+            <div class="input" (change)="onSettingChange(treeSettingsEnum.debugMode)">
+                <input type="checkbox" name="debug" id="debug" [checked]="this.settings.debugMode" />
             </div>
         </div>
         <div class="option-row" style="border-color: green">
             <div class="label">
                 <label for="clade" class="selectable">Starting Clade</label>
             </div>
-            <div class="input">
-                <input type="checkbox" name="clade" id="clade" />
+            <div class="comboBox" (change)="onSettingChange(treeSettingsEnum.startingClade)">
+                <select name="cars" id="cars">
+                    <option value="volvo">Volvo</option>
+                    <option value="saab">Saab</option>
+                    <option value="mercedes">Mercedes</option>
+                    <option value="audi">Audi</option>
+                </select>
             </div>
         </div>
         <div class="option-row" style="border-color: pink">
             <div class="label">
                 <label for="animation" class="selectable">Disable Animations</label>
             </div>
-            <div class="input">
-                <input type="checkbox" name="animation" id="animation" />
+            <div class="input" (change)="onSettingChange(treeSettingsEnum.disableAnimations)">
+                <input type="checkbox" name="animation" id="animation" [checked]="this.settings.disableAnimations" />
             </div>
         </div>
     </div>
     <div id="setting-control" (click)="toggleMenu()">
-        <p class="m-0 text-center selectable user-select-none">{{ ControlSettingsText }} Settings</p>
+        <p class="m-0 text-center selectable user-select-none">{{ showSettings ? 'Close' : 'Open' }} Settings</p>
     </div>
 </div>

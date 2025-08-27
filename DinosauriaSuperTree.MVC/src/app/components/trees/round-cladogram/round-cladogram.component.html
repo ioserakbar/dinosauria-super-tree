@@ -13,22 +13,6 @@
         overflow: hidden;
     }
 
-    .species-name {
-        position: absolute;
-        transform-origin: top left;
-    }
-
-    .species-name a {
-        display: block;
-        color: inherit;
-        text-decoration: none;
-        margin: 0px;
-        padding: 0px;
-        outline: none;
-        border: none;
-        margin: 0px 5px;
-    }
-
     .cursor-pointer {
         cursor: pointer;
     }
@@ -36,12 +20,8 @@
     .cursor-default {
         cursor: default;
     }
-
-    .canvas-node-content {
-        background-color: red;
-    }
 </style>
-<pt-floating-menu></pt-floating-menu>
+<pt-floating-menu (changeSettings)="onSettingsChange($event)"></pt-floating-menu>
 <div class="canvas-contaier">
     <canvas #canvas id="test-canvas" width="1920" height="1080"></canvas>
 </div>

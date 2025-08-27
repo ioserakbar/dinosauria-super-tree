@@ -1,6 +1,24 @@
-import mongoose, { Schema } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-export const cladeSchema = new Schema(
+export interface Clade {
+    id: string;
+    name: string;
+    parentClade: string;
+    description: string;
+    isFirst?: boolean;
+    drawHelper?: {
+        coords: {
+            angle: number;
+            distance: number;
+        };
+        totalSons: number;
+        arcOrientation: boolean;
+    };
+    tier?: number;
+    directSons?: string[];
+}
+
+export const cladeSchema = new Schema<Clade>(
     {
         name: { type: String, required: true },
         parentClade: { type: String, required: false },
@@ -18,8 +36,14 @@ export const cladeSchema = new Schema(
         directSons: { type: [String], required: false }
     },
     {
+        toJSON: {
+            virtuals: true
+        },
+        toObject: {
+            virtuals: true
+        },
         timestamps: true
     }
 );
 
-export const CladeModel = mongoose.model('clades', cladeSchema);
+export const CladeModel = model<Clade>('clades', cladeSchema);

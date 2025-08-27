@@ -10,6 +10,7 @@ declare global {
             mongoUpdate: Document | undefined;
             mongoDelete: Document | undefined;
             mongoQuery: Document[];
+            cladogramData: Document[];
         }
     }
 }
@@ -21,6 +22,7 @@ export function declareHandler(req: Request, res: Response, next: NextFunction) 
     req.mongoUpdate = undefined;
     req.mongoDelete = undefined;
     req.mongoQuery = [];
+    req.cladogramData = [];
 
     next();
 }

@@ -9,6 +9,7 @@ import { MongoQuery } from '../decorators/mongoose/query';
 import { MongoUpdate } from '../decorators/mongoose/update';
 import { MongoDelete } from '../decorators/mongoose/delete';
 import { HttpResponses } from '../library/HttpResponses.enum';
+import { GetCladogramData } from '../decorators/clade';
 
 @Controller('/clade')
 class CladeController {
@@ -46,6 +47,12 @@ class CladeController {
     @MongoDelete(Clade)
     async delete(req: Request, res: Response, next: NextFunction) {
         return res.status(HttpResponses.OK).json(req.mongoDelete);
+    }
+
+    @Route('get', '/cladogram/:id')
+    @GetCladogramData()
+    async getCladogramMapCoordinates(req: Request, res: Response, next: NextFunction) {
+        return res.status(HttpResponses.OK).json(req.cladogramData);
     }
 }
 
